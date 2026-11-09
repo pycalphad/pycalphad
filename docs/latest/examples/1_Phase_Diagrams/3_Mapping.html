@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Plotting using the Mapping API - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
+        <title>Plotting using the Mapping API - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -164,7 +164,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -188,7 +188,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -302,16 +302,86 @@
           <section id="Plotting-using-the-Mapping-API">
 <h1>Plotting using the Mapping API<a class="headerlink" href="#Plotting-using-the-Mapping-API" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">Mapping</span></code> uses the algorithms outlined in <a class="reference external" href="https://doi.org/10.1016/j.calphad.2021.102330">Algorithms useful for calculating multi-component equilibria, phase diagrams and other kinds of diagrams (B. Sundman, N. Dupin, B. Hallstedt, Calphad 75 (2021) 102330)</a> to construct phase diagrams by stepping along phase boundaries.</p>
-<p><code class="docutils literal notranslate"><span class="pre">binplot</span></code> and <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> are thin wrappers around the binary and ternary mapping strategies; however, additional plotting capabilities are available through the <code class="docutils literal notranslate"><span class="pre">mapping</span></code> module.</p>
-<section id="Binary-phase-diagrams-with-mapping">
-<h2>Binary phase diagrams with mapping<a class="headerlink" href="#Binary-phase-diagrams-with-mapping" title="Link to this heading">¶</a></h2>
-<p>This shows how to plot a binary phase diagram through mapping as an alternative to binplot.</p>
+<p><code class="docutils literal notranslate"><span class="pre">binplot</span></code> and <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> are thin wrappers around <code class="docutils literal notranslate"><span class="pre">TielineStrategy</span></code>; however, additional plotting capabilities are available through the <code class="docutils literal notranslate"><span class="pre">mapping</span></code> module.</p>
+<section id="Unary-phase-diagrams-with-mapping">
+<h2>Unary phase diagrams with mapping<a class="headerlink" href="#Unary-phase-diagrams-with-mapping" title="Link to this heading">¶</a></h2>
+<p>There is no <code class="docutils literal notranslate"><span class="pre">binplot</span></code> or <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> equivalent for unary P/T diagrams currently, but the <code class="docutils literal notranslate"><span class="pre">TielineStrategy</span></code> can still be used.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Workspace</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">TielineStrategy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.tests.databases</span>
+
+<span class="n">GPa</span> <span class="o">=</span> <span class="mf">1e9</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">files</span><span class="p">(</span><span class="n">pycalphad</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"cfe_broshe.tdb"</span><span class="p">)</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FE"</span><span class="p">,</span> <span class="s2">"VA"</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"BCC_A2"</span><span class="p">,</span> <span class="s2">"FCC_A1"</span><span class="p">,</span> <span class="s2">"HCP_A3"</span><span class="p">,</span> <span class="s2">"LIQUID"</span><span class="p">]</span>
+<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">4000</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">GPa</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">GPa</span><span class="p">)}</span>
+
+<span class="n">strategy</span> <span class="o">=</span> <span class="n">TielineStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
+
+<span class="c1"># annotation helper to put a phase label at an xypoint (with optional xy offset if the text needs to be shfited with an arrow)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_PT</span><span class="p">(</span><span class="n">pressure_GPa</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">xyoffset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">wks</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
+    <span class="n">wks</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">]</span> <span class="o">=</span> <span class="n">pressure_GPa</span> <span class="o">*</span> <span class="n">GPa</span>
+    <span class="n">wks</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="n">temperature</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="s1">' + '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">phase_amnt_var</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">phase_amnt_var</span><span class="p">,</span> <span class="n">phase_amnt</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(</span><span class="s2">"NP(*)"</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">phase_amnt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xyoffset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="p">(</span><span class="n">pressure_GPa</span><span class="p">,</span> <span class="n">temperature</span><span class="p">),</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arrowprops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span>    <span class="c1"># Color of the arrow body</span>
+                <span class="n">shrink</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>          <span class="c1"># Gap between arrow tip/tail and target/text</span>
+                <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>              <span class="c1"># Width of the arrow stem</span>
+                <span class="n">headwidth</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>           <span class="c1"># Width of the arrowhead</span>
+            <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="p">(</span><span class="n">pressure_GPa</span><span class="p">,</span> <span class="n">temperature</span><span class="p">),</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="n">pressure_GPa</span><span class="o">+</span><span class="n">xyoffset</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">temperature</span><span class="o">+</span><span class="n">xyoffset</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">arrowprops</span><span class="o">=</span><span class="n">arrowprops</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">tieline_data</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_tieline_data</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="s2">"GPa"</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+    <span class="n">spd</span> <span class="o">=</span> <span class="n">tieline_data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">spd</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">spd</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'k'</span><span class="p">)</span>
+
+<span class="n">annotate_PT</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>  <span class="c1"># alpha (BCC)</span>
+<span class="n">annotate_PT</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">800</span><span class="p">)</span> <span class="c1"># epsilon (HCP)</span>
+<span class="n">annotate_PT</span><span class="p">(</span><span class="mi">35</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>  <span class="c1"># gamma (FCC)</span>
+<span class="n">annotate_PT</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1800</span><span class="p">,</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>  <span class="c1"># delta</span>
+<span class="n">annotate_PT</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">3000</span><span class="p">)</span>  <span class="c1"># liquid</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Pressure (GPa)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Temperature (K)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Fe unary P-T phase diagram (cfe_broshe.tdb)"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_2_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_2_0.png" />
+</div>
+</div>
+</section>
+<section id="Binary-phase-diagrams-with-mapping">
+<h2>Binary phase diagrams with mapping<a class="headerlink" href="#Binary-phase-diagrams-with-mapping" title="Link to this heading">¶</a></h2>
+<p>This shows how to plot a binary phase diagram through mapping as an alternative to binplot.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">plot_binary</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">TielineStrategy</span><span class="p">,</span> <span class="n">plot_binary</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'../databases/alzn_mey.tdb'</span><span class="p">)</span>
@@ -319,8 +389,7 @@
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'ZN'</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)}</span>
 
 <span class="c1"># Phases will be automatically filtered with components if no phases are passed</span>
-<span class="n">binary</span> <span class="o">=</span> <span class="n">BinaryStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
-<span class="n">binary</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
+<span class="n">binary</span> <span class="o">=</span> <span class="n">TielineStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Al-Zn Phase Diagram using (default) mole fractions"</span><span class="p">)</span>
@@ -334,11 +403,11 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_2_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_2_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_4_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_4_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plotting in weight fraction</span>
@@ -356,16 +425,16 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_3_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_3_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_5_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_5_0.png" />
 </div>
 </div>
-<p>Similarly, the same can be done for ternaries using TernaryStrategy and plot_ternary.</p>
+<p>Similarly, the same can be done for ternaries using TielineStrategy and plot_ternary.</p>
 </section>
 <section id="Step-plotting">
 <h2>Step plotting<a class="headerlink" href="#Step-plotting" title="Link to this heading">¶</a></h2>
 <p>Step mapping allows computing equilibrium along a single axis. By default, step plotting will plot phase fraction vs. variable axis, but this can be modified through plotting.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepStrategy</span><span class="p">,</span> <span class="n">plot_step</span>
@@ -375,7 +444,6 @@
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'CU'</span><span class="p">):</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
 
 <span class="n">step</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
-<span class="n">step</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
 
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
@@ -391,11 +459,11 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_6_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_6_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_8_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_8_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plotting composition of Al and Cu in each phase</span>
@@ -421,11 +489,11 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_7_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_7_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_9_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_9_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plotting heat capacity vs T</span>
@@ -445,7 +513,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_8_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_8_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_10_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_10_0.png" />
 </div>
 </div>
 </section>
@@ -453,7 +521,7 @@
 <h2>Isopleth plotting<a class="headerlink" href="#Isopleth-plotting" title="Link to this heading">¶</a></h2>
 <p>For multicomponent systems, isopleths can be computed and plotted.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsoplethStrategy</span><span class="p">,</span> <span class="n">plot_isopleth</span>
@@ -463,7 +531,6 @@
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'Y'</span><span class="p">):</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'CU'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)}</span>
 
 <span class="n">iso</span> <span class="o">=</span> <span class="n">IsoplethStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
-<span class="n">iso</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_isopleth</span><span class="p">(</span><span class="n">iso</span><span class="p">)</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Al-Cu-Y Isopleth at X(Y) = 0.1"</span><span class="p">)</span>
@@ -477,7 +544,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_10_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_10_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_12_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_12_0.png" />
 </div>
 </div>
 </section>
@@ -485,13 +552,13 @@
 <h2>Custom plotting<a class="headerlink" href="#Custom-plotting" title="Link to this heading">¶</a></h2>
 <p>While the Mapping API provides built-in plotting functions, access to Mapping data is provided to build custom plotting functions. Below is an example to plot binary and ternary phase diagrams with shaded regions.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_label</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">plot_shaded_binary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">single_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">two_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_shaded_binary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">TielineStrategy</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">single_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">two_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)):</span>
     <span class="c1"># Assume x is composition and y is temperature or pressure</span>
     <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
@@ -527,8 +594,7 @@
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'ZN'</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)}</span>
 
 <span class="c1"># Phases will be automatically filtered with components if no phases are passed</span>
-<span class="n">binary</span> <span class="o">=</span> <span class="n">BinaryStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
-<span class="n">binary</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
+<span class="n">binary</span> <span class="o">=</span> <span class="n">TielineStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 <span class="n">plot_shaded_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Shaded Al-Zn Phase Diagram"</span><span class="p">)</span>
@@ -542,18 +608,18 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_12_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_12_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_14_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_14_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangular</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">TernaryStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">TielineStrategy</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">plot_shaded_ternary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">TernaryStrategy</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">single_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">two_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">three_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_shaded_ternary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">TielineStrategy</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">single_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">two_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">three_phase_color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)):</span>
     <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -591,8 +657,7 @@
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1323</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'CR'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'FE'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">)}</span>
 
-<span class="n">tern</span> <span class="o">=</span> <span class="n">TernaryStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
-<span class="n">tern</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
+<span class="n">tern</span> <span class="o">=</span> <span class="n">TielineStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">'projection'</span><span class="p">:</span> <span class="s1">'triangular'</span><span class="p">})</span>
 <span class="n">plot_shaded_ternary</span><span class="p">(</span><span class="n">tern</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'CR'</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'FE'</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Shaded Cr-Fe-Nb Phase Diagram"</span><span class="p">)</span>
@@ -606,7 +671,7 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_13_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_13_0.png" />
+<img alt="../../_images/examples_1_Phase_Diagrams_3_Mapping_15_0.png" src="../../_images/examples_1_Phase_Diagrams_3_Mapping_15_0.png" />
 </div>
 </div>
 </section>
@@ -668,6 +733,7 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Plotting using the Mapping API</a><ul>
+<li><a class="reference internal" href="#Unary-phase-diagrams-with-mapping">Unary phase diagrams with mapping</a></li>
 <li><a class="reference internal" href="#Binary-phase-diagrams-with-mapping">Binary phase diagrams with mapping</a></li>
 <li><a class="reference internal" href="#Step-plotting">Step plotting</a></li>
 <li><a class="reference internal" href="#Isopleth-plotting">Isopleth plotting</a></li>
@@ -683,7 +749,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=346e671a"></script>
+</div><script src="../../_static/documentation_options.js?v=cb7e2185"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

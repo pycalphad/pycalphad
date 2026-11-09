@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.step_strategy - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
+        <title>pycalphad.mapping.strategy.step_strategy - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -352,7 +352,7 @@
         <span class="n">num_node_cs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span>
         <span class="n">num_parent_cs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span>
         <span class="n">is_pot_cond</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">is_state_variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">is_invariant</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">degrees_of_freedom</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_potential_condition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">is_invariant</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">degrees_of_freedom</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_fixed_potentials</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="n">num_node_cs</span> <span class="o">==</span> <span class="n">num_parent_cs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># Node has more phases than parent</span>
@@ -497,6 +497,7 @@
 <span class="sd">              This is in contrast to v.X(component) or v.NP where composition or phase fraction will be</span>
 <span class="sd">              taken for all stable phases</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_mapped</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -580,7 +581,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=346e671a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=cb7e2185"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

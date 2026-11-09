@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.isopleth_strategy - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
+        <title>pycalphad.mapping.strategy.isopleth_strategy - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -394,6 +394,7 @@
         <span class="c1"># Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction</span>
         <span class="c1"># NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated</span>
         <span class="c1">#      as starting points (which has no parents), so no starting points for isopleth mapping would be added</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping_complete</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Add node with both positive and negative step direction</span>
@@ -427,7 +428,7 @@
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">==</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
-        <span class="n">node_is_invariant</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">degrees_of_freedom</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_potential_condition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">node_is_invariant</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">degrees_of_freedom</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_fixed_potentials</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
         <span class="c1"># Exits for invariant and non-invariant nodes are a bit long, so splitting them to individual functions</span>
         <span class="k">if</span> <span class="n">node_is_invariant</span><span class="p">:</span>
@@ -600,6 +601,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        StrategyData where the data pertains to each ZPF line</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_mapped</span><span class="p">()</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
             <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SinglePhaseData</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">fixed_phases</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
@@ -629,9 +631,10 @@
 <span class="sd">                  but rather the p-2 phases where the p-2 phase region intersects with</span>
 <span class="sd">                  the fixed isopleth conditions</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_mapped</span><span class="p">()</span>
         <span class="n">node_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
-            <span class="n">is_invariant</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">degrees_of_freedom</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_potential_condition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="n">is_invariant</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">degrees_of_freedom</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_fixed_potentials</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="n">is_invariant</span><span class="p">:</span>
                 <span class="n">x_vals</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">y_vals</span> <span class="o">=</span> <span class="p">[]</span>
@@ -700,7 +703,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=346e671a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=cb7e2185"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

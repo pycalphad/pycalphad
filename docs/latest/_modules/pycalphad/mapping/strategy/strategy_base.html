@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.strategy_base - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
+        <title>pycalphad.mapping.strategy.strategy_base - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -321,8 +321,8 @@
 <span class="sd">    Derived Classes</span>
 <span class="sd">    ---------------</span>
 <span class="sd">    - SteppingStrategy: For single-axis diagrams.</span>
-<span class="sd">    - BinaryStrategy: For binary phase diagrams (1 composition, 1 potential axis).</span>
-<span class="sd">    - TernaryStrategy: For ternary phase diagrams (2 composition axes).</span>
+<span class="sd">    - TielineStrategy: For phase diagrams with tie-lines in the plane of the axis variables</span>
+<span class="sd">      (binary phase diagrams and ternary isothermal sections).</span>
 <span class="sd">    - IsoplethStrategy: For isopleths (tested only for 1 composition, 1 potential axis so far).</span>
 
 <span class="sd">    Constants</span>
@@ -350,7 +350,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dbf</span> <span class="o">=</span> <span class="n">dbf</span>
 
         <span class="c1"># Don't add vacancies to components in case user needs to restrict non-stoichiometric phases</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">components</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">get_pure_elements</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="n">filter_phases</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="n">unpack_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="n">phases</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span>
@@ -384,6 +384,7 @@
 
         <span class="n">state_vars</span> <span class="o">=</span> <span class="n">get_state_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_potential_condition</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">av</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_lims</span> <span class="k">if</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">state_vars</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_fixed_potentials</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">IndependentPotential</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">ChemicalPotential</span><span class="p">))</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_records</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'phase_record_factory'</span><span class="p">,</span> <span class="n">PhaseRecordFactory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">state_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">))</span>
 
         <span class="c1"># In case we need to call pycalphad functions outside this class</span>
@@ -397,6 +398,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ZPFLine</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span> <span class="o">=</span> <span class="n">NodeQueue</span><span class="p">()</span>
+
+        <span class="c1"># Set when do_map finishes, reset when starting points are added</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping_complete</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_node</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_exits</span> <span class="o">=</span> <span class="p">[]</span>
@@ -425,6 +429,13 @@
             <span class="p">}</span>
         <span class="k">return</span> <span class="n">const_kwargs</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_mapped</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Runs do_map before data retrieval if mapping has not finished</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping_complete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
+
 <div class="viewcode-block" id="MapStrategy.get_all_phases">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.get_all_phases">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_all_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -434,6 +445,7 @@
 <span class="sd">        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set.</span>
 <span class="sd">        There should always be nodes in the node_queue since it includes starting points (even if they're not nodes in the mapping sense)</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_mapped</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">zpf_phases</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases_with_multiplicity</span><span class="p">)</span> <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
@@ -497,6 +509,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping_complete</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 
@@ -583,7 +596,8 @@
         <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="p">(</span><span class="ow">not</span> <span class="n">finished</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">max_iter</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">max_iter</span><span class="p">):</span>
             <span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span><span class="p">()</span>
-            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span></div>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping_complete</span> <span class="o">=</span> <span class="n">finished</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_continue_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -691,6 +705,7 @@
             <span class="n">zchk</span><span class="o">.</span><span class="n">check_global_min</span><span class="p">,</span>
             <span class="n">zchk</span><span class="o">.</span><span class="n">check_axis_values</span><span class="p">,</span>
             <span class="n">zchk</span><span class="o">.</span><span class="n">check_similar_phase_composition</span><span class="p">,</span>
+            <span class="n">zchk</span><span class="o">.</span><span class="n">check_degenerate_tieline</span><span class="p">,</span>
             <span class="n">zchk</span><span class="o">.</span><span class="n">check_circular_loop</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="n">axis_data</span> <span class="o">=</span> <span class="p">{</span>
@@ -884,8 +899,11 @@
                 <span class="s2">"global_num_candidates"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span><span class="p">,</span>
             <span class="p">}</span>
 
-            <span class="c1"># Check valid equilibrium, global min and change in phases</span>
-            <span class="n">check_functions</span> <span class="o">=</span> <span class="p">[</span><span class="n">zchk</span><span class="o">.</span><span class="n">simple_check_valid_point</span><span class="p">,</span> <span class="n">zchk</span><span class="o">.</span><span class="n">simple_check_change_in_phases</span><span class="p">,</span> <span class="n">zchk</span><span class="o">.</span><span class="n">simple_check_global_min</span><span class="p">]</span>
+            <span class="n">check_functions</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">zchk</span><span class="o">.</span><span class="n">simple_check_valid_point</span><span class="p">,</span>
+                <span class="n">zchk</span><span class="o">.</span><span class="n">simple_check_change_in_phases</span><span class="p">,</span>
+                <span class="n">zchk</span><span class="o">.</span><span class="n">simple_check_global_min</span><span class="p">,</span>
+            <span class="p">]</span>
             <span class="n">valid_point</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">for</span> <span class="n">checks</span> <span class="ow">in</span> <span class="n">check_functions</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">checks</span><span class="p">(</span><span class="n">step_results</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_args</span><span class="p">):</span>
@@ -937,7 +955,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=346e671a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=cb7e2185"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

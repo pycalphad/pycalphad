@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
+        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -326,11 +326,26 @@
 <span class="sd">    check_change_in_phases</span>
 <span class="sd">    check_global_min</span>
 <span class="sd">    check_similar_phase_composition</span>
+<span class="sd">    check_degenerate_tieline</span>
 
 <span class="sd">    These will check whether the step result is valid or</span>
 <span class="sd">    if not valid, then will modify the zpf line or create</span>
 <span class="sd">    a new node</span>
 <span class="sd">"""</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_degenerate_zero_width_tieline</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-7</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns True if multiple composition sets all have (nearly) the same composition, within tol in mole fraction</span>
+
+<span class="sd">    Unary systems are exempt, since phases coexist along univariant lines</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">comps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cs</span><span class="o">.</span><span class="n">X</span><span class="p">)</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">comp_sets</span><span class="p">])</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="n">tol</span>
 
 <div class="viewcode-block" id="simple_check_valid_point">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_valid_point">[docs]</a>
@@ -763,6 +778,38 @@
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
+<div class="viewcode-block" id="check_degenerate_tieline">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_degenerate_tieline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_degenerate_tieline</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Ends the zpf line if its tie-line has collapsed to zero width at a fixed composition</span>
+<span class="sd">    (e.g. along a pure-element edge above the melting point)</span>
+
+<span class="sd">    2 possible outcomes</span>
+<span class="sd">        a) Distinct compositions, or composition still advancing -&gt; pass</span>
+<span class="sd">        b) Zero-width tie-line pinned in composition -&gt; end zpf line gracefully</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="k">if</span> <span class="n">_degenerate_zero_width_tieline</span><span class="p">(</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">):</span>
+        <span class="c1"># A real boundary crossing a congruent extremum keeps advancing in composition</span>
+        <span class="n">axis_vars</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">"axis_vars"</span><span class="p">]</span>
+        <span class="n">normalize_factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"normalize_factor"</span><span class="p">,</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">})</span>
+        <span class="n">composition_axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">av</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">av</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">)]</span>
+        <span class="n">prev_point</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">movement</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">new_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="o">-</span> <span class="n">prev_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">))</span> <span class="o">/</span> <span class="n">normalize_factor</span><span class="p">[</span><span class="n">av</span><span class="p">])</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">composition_axes</span><span class="p">]</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">/</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">"axis_delta"</span><span class="p">][</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]</span>
+        <span class="n">pinned</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">movement</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">movement</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">step</span>
+        <span class="k">if</span> <span class="n">pinned</span><span class="p">:</span>
+            <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">REACHED_LIMIT</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"All composition sets of </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2"> have the same composition (zero-width tie-line). Ending ZPF line."</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Zero-width tie-line at </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2"> but composition is still advancing (crossing a congruent extremum). Continuing ZPF line."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
 <div class="viewcode-block" id="check_circular_loop">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_circular_loop">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_circular_loop</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -774,6 +821,8 @@
 <span class="sd">    This stops the zpf line if the distance from the step result to the first point</span>
 <span class="sd">    is smaller than the distance to the previous point. The only times this should</span>
 <span class="sd">    occur is if the zpf line rapidly switched directions or if it loops in on itself</span>
+
+<span class="sd">    Distances are normalized by each axis step so that one axis does not dominate</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -792,15 +841,18 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="n">x_curr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">step_results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_data</span><span class="p">[</span><span class="s1">'axis_vars'</span><span class="p">]])</span>
-    <span class="n">x_first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_data</span><span class="p">[</span><span class="s1">'axis_vars'</span><span class="p">]])</span>
-    <span class="n">x_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_data</span><span class="p">[</span><span class="s1">'axis_vars'</span><span class="p">]])</span>
+    <span class="n">axis_vars</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">"axis_vars"</span><span class="p">]</span>
+    <span class="n">normalize_factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"normalize_factor"</span><span class="p">,</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">})</span>
+    <span class="n">x_curr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">step_results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="o">/</span> <span class="n">normalize_factor</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">])</span>
+    <span class="n">x_first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="o">/</span> <span class="n">normalize_factor</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">])</span>
+    <span class="n">x_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="o">/</span> <span class="n">normalize_factor</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">])</span>
     <span class="n">vfirst</span> <span class="o">=</span> <span class="n">x_first</span> <span class="o">-</span> <span class="n">x_curr</span>
     <span class="n">vprev</span> <span class="o">=</span> <span class="n">x_curr</span> <span class="o">-</span> <span class="n">x_prev</span>
     <span class="n">dist_first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vfirst</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
     <span class="n">dist_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vprev</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
     <span class="c1"># if distance to first point is smaller than to previous point, then stop zpf line</span>
     <span class="k">if</span> <span class="n">dist_first</span> <span class="o">&lt;</span> <span class="n">dist_prev</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ZPF line looped back near its first point (normalized distance to first </span><span class="si">{</span><span class="n">dist_first</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> &lt; distance to previous </span><span class="si">{</span><span class="n">dist_prev</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">). Ending ZPF line."</span><span class="p">)</span>
         <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">REACHED_LIMIT</span>
 
     <span class="k">return</span> <span class="kc">None</span></div>
@@ -837,7 +889,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=346e671a"></script>
+</div><script src="../../../_static/documentation_options.js?v=cb7e2185"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

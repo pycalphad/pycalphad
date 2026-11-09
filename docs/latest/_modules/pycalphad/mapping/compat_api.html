@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.compat_api - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
+        <title>pycalphad.mapping.compat_api - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -294,7 +294,7 @@
           <h1>Source code for pycalphad.mapping.compat_api</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">TernaryStrategy</span><span class="p">,</span> <span class="n">plot_binary</span><span class="p">,</span> <span class="n">plot_ternary</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">TielineStrategy</span><span class="p">,</span> <span class="n">plot_binary</span><span class="p">,</span> <span class="n">plot_ternary</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">map_utils</span>
 
 <div class="viewcode-block" id="binplot">
@@ -315,9 +315,9 @@
 <span class="sd">        Maps StateVariables to values and/or iterables of values.</span>
 <span class="sd">        For binplot only one changing composition and one potential coordinate each is supported.</span>
 <span class="sd">    return_strategy : bool, optional</span>
-<span class="sd">        Return the BinaryStrategy object in addition to the Axes. Defaults to False.</span>
+<span class="sd">        Return the TielineStrategy object in addition to the Axes. Defaults to False.</span>
 <span class="sd">    map_kwargs : dict, optional</span>
-<span class="sd">        Additional keyword arguments to BinaryStrategy().</span>
+<span class="sd">        Additional keyword arguments to TielineStrategy().</span>
 <span class="sd">    plot_kwargs : dict, optional</span>
 <span class="sd">        Keyword arguments to plot_binary()</span>
 <span class="sd">        Possible key,val pairs in plot_kwargs</span>
@@ -336,7 +336,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    Axes</span>
 <span class="sd">        Matplotlib Axes of the phase diagram</span>
-<span class="sd">    (Axes, BinaryStrategy)</span>
+<span class="sd">    (Axes, TielineStrategy)</span>
 <span class="sd">        If return_strategy is True.</span>
 
 <span class="sd">    """</span>
@@ -345,8 +345,7 @@
     <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_comps</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_pots</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'binplot() requires exactly one composition coordinate and one potential coordinate'</span><span class="p">)</span>
 
-    <span class="n">strategy</span> <span class="o">=</span> <span class="n">BinaryStrategy</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
-    <span class="n">strategy</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
+    <span class="n">strategy</span> <span class="o">=</span> <span class="n">TielineStrategy</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
 
     <span class="n">plot_kwargs</span> <span class="o">=</span> <span class="n">plot_kwargs</span> <span class="k">if</span> <span class="n">plot_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_binary</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
@@ -383,7 +382,7 @@
 <span class="sd">        instance of a pycalphad.variables.composition to plot on the y-axis.</span>
 <span class="sd">        Must correspond to an independent condition.</span>
 <span class="sd">    return_strategy : bool, optional</span>
-<span class="sd">        Return the TernaryStrategy object in addition to the Axes. Defaults to False.</span>
+<span class="sd">        Return the TielineStrategy object in addition to the Axes. Defaults to False.</span>
 <span class="sd">    label_nodes : bool (optional)</span>
 <span class="sd">        Whether to plot points for phases on three-phase regions</span>
 <span class="sd">        Default = False</span>
@@ -394,7 +393,7 @@
 <span class="sd">        Color for tie triangles</span>
 <span class="sd">        Default = (1,0,0,1)</span>
 <span class="sd">    map_kwargs : dict, optional</span>
-<span class="sd">        Additional keyword arguments to TernaryStrategy().</span>
+<span class="sd">        Additional keyword arguments to TielineStrategy().</span>
 <span class="sd">    plot_kwargs : dict, optional</span>
 <span class="sd">        Keyword arguments to plot_ternary().</span>
 
@@ -402,7 +401,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    Axes</span>
 <span class="sd">        Matplotlib Axes of the phase diagram</span>
-<span class="sd">    (Axes, TernaryStrategy)</span>
+<span class="sd">    (Axes, TielineStrategy)</span>
 <span class="sd">        If return_strategy is True.</span>
 
 <span class="sd">    """</span>
@@ -412,8 +411,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'ternplot() requires exactly two composition coordinates'</span><span class="p">)</span>
 
     <span class="n">map_kwargs</span> <span class="o">=</span> <span class="n">map_kwargs</span> <span class="k">if</span> <span class="n">map_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
-    <span class="n">strategy</span> <span class="o">=</span> <span class="n">TernaryStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
-    <span class="n">strategy</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
+    <span class="n">strategy</span> <span class="o">=</span> <span class="n">TielineStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
 
     <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_ternary</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -456,7 +454,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=346e671a"></script>
+</div><script src="../../../_static/documentation_options.js?v=cb7e2185"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
