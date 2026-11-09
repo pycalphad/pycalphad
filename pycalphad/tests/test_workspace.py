@@ -165,6 +165,8 @@ def test_condition_nonexistent_component(load_database):
         wks.conditions[v.W('FE')] = 0.3
     with pytest.raises(ConditionError):
         wks.conditions[v.Y('FCC_A1', 0, 'FE')] = 0.3
+    with pytest.raises(ConditionError):
+        wks.conditions[v.X('AL')/v.X('FE')] = 0.3
 
 @select_database("alzn_mey.tdb")
 def test_jansson_derivative_binary_composition(load_database):
@@ -248,6 +250,17 @@ def test_lincomb_ratio_ternary_condition(load_database):
                     conditions={v.T: 2500, v.P: 1e5, v.N: 1, v.X('AL'): 0.1, v.X('CR')/v.X('NI'): [0.25, 0.5, 1]})
     result = wks.get('X(CR)') / wks.get('X(NI)')
     np.testing.assert_almost_equal(result, [0.25, 0.5, 1], decimal=8)
+
+@select_database("alzn_mey.tdb")
+def test_lincomb_phaselocal_condition(load_database):
+    "Phase-local mole fractions are rejected in linear combination conditions."
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 300})
+    with pytest.raises(ConditionError):
+        wks.conditions[v.X('LIQUID', 'AL')/v.X('LIQUID', 'ZN')] = 0.5
+    with pytest.raises(ConditionError):
+        wks.conditions[v.X('LIQUID', 'ZN') - v.X('AL')] = 0.1
 
 @select_database("alzn_mey.tdb")
 def test_phaselocal_binary_sitefrac_condition(load_database):
