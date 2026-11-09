@@ -2,6 +2,11 @@
 import time
 from copy import deepcopy
 from collections import OrderedDict
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 import numpy as np
 from pycalphad import calculate, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
@@ -15,6 +20,7 @@ from pycalphad.property_framework import as_quantity
 from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
+@deprecated("map_binary is deprecated. Use `pycalphad.mapping.TielineStrategy` instead.")
 def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
                boundary_sets=None, verbose=False, summary=False,):
     """

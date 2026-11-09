@@ -2,12 +2,18 @@
 The ternary module enables plotting of ternary isobaric phase diagrams.
 """
 import numpy as np
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 
 from pycalphad import equilibrium
 import pycalphad.variables as v
 from pycalphad.plot.eqplot import eqplot
 
 
+@deprecated("pycalphad.plot.ternary.ternplot is deprecated. Use `pycalphad.ternplot` instead.")
 def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_kwargs):
     """
     Calculate the ternary isothermal, isobaric phase diagram.
