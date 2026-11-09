@@ -10,6 +10,11 @@ from matplotlib import collections as mc
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 
 
 def _map_coord_to_variable(coord):
@@ -34,6 +39,7 @@ def _map_coord_to_variable(coord):
         return coord
 
 
+@deprecated("eqplot is deprecated. Use `pycalphad.binplot` or `pycalphad.ternplot` instead.")
 def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), legend_generator=phase_legend, **kwargs):
     """
     Plot the result of an equilibrium calculation.

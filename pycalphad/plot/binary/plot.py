@@ -4,6 +4,11 @@ function `binplot` for users to plot binary phase diagrams with a similar API
 as `equilibrium`.
 """
 
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 import pycalphad.variables as v
 import matplotlib.pyplot as plt
 from pycalphad.mapping.plotting import get_label
@@ -11,6 +16,7 @@ from pycalphad.plot.utils import phase_legend
 from .map import map_binary
 
 
+@deprecated("plot_boundaries is deprecated. Use `pycalphad.mapping.plot_binary` instead.")
 def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color=(0, 1, 0, 1), scatter=True, legend_generator=phase_legend, ax=None, gridlines=False):
     """
     Plot a set of ZPFBoundarySets
@@ -72,6 +78,7 @@ def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color=(0, 1, 0, 1)
     return ax
 
 
+@deprecated("pycalphad.plot.binary.binplot is deprecated. Use `pycalphad.binplot` instead.")
 def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kwargs):
     """
     Calculate the binary isobaric phase diagram.

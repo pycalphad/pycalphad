@@ -2,6 +2,7 @@
 The plot test module verifies that the plotting module produces plots without error.
 """
 
+import pytest
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 from pycalphad import binplot, eqplot, equilibrium
@@ -20,6 +21,7 @@ def test_binplot(load_database):
     assert isinstance(ax, Axes)
 
 
+@pytest.mark.filterwarnings("ignore:eqplot is deprecated:DeprecationWarning")
 @select_database("alfe.tdb")
 def test_eqplot_binary(load_database):
     """
@@ -36,6 +38,7 @@ def test_eqplot_binary(load_database):
     assert isinstance(ax, Axes)
 
 
+@pytest.mark.filterwarnings("ignore:eqplot is deprecated:DeprecationWarning")
 @select_database("alcocrni.tdb")
 def test_eqplot_ternary(load_database):
     """

@@ -1,3 +1,4 @@
+import pytest
 from pycalphad import variables as v
 from pycalphad.plot.binary.compsets import BinaryCompset, CompsetPair
 from pycalphad.plot.binary.map import map_binary
@@ -5,6 +6,7 @@ from pycalphad.plot.binary.zpf_boundary_sets import TwoPhaseRegion, ZPFBoundaryS
 from pycalphad.tests.fixtures import select_database, load_database
 
 
+@pytest.mark.filterwarnings("ignore:map_binary is deprecated:DeprecationWarning")
 @select_database("alfe.tdb")
 def test_binary_mapping(load_database):
     """

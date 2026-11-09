@@ -1,8 +1,6 @@
 """
 The utils module handles helper routines for equilibrium calculation.
 """
-import warnings
-
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION, ALLOWED_NET_CHARGE
@@ -113,25 +111,6 @@ def unpack_phases(phases):
     else:
         raise ValueError(f'Cannot unpack phases into recognizable input. Got {phases} of type {type(phases)}')
     return active_phases
-
-def generate_dof(phase, active_comps):
-    """
-    Accept a Phase object and a set() of the active components.
-    Return a tuple of variable names and the sublattice degrees of freedom.
-    """
-    msg = "generate_dof is deprecated and will be removed in a future version "
-    msg += "of pycalphad. The correct way to determine the degrees of freedom "
-    msg += "of a particular 'active' phase is to use Model.constituents."
-    warnings.warn(msg, FutureWarning)
-    variables = []
-    sublattice_dof = []
-    for idx, sublattice in enumerate(phase.constituents):
-        dof = 0
-        for component in sorted(set(sublattice).intersection(active_comps)):
-            variables.append(v.SiteFraction(phase.name.upper(), idx, component))
-            dof += 1
-        sublattice_dof.append(dof)
-    return variables, sublattice_dof
 
 def endmember_matrix(dof, vacancy_indices=None):
     """
