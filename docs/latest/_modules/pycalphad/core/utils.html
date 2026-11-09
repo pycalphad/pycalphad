@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.utils - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
+        <title>pycalphad.core.utils - pycalphad 0.11.3.dev46+g994208846 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev46+g994208846 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev46+g994208846 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -295,8 +295,6 @@
 <span></span><span class="sd">"""</span>
 <span class="sd">The utils module handles helper routines for equilibrium calculation.</span>
 <span class="sd">"""</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.halton</span><span class="w"> </span><span class="kn">import</span> <span class="n">halton</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">ALLOWED_NET_CHARGE</span>
@@ -418,28 +416,6 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Cannot unpack phases into recognizable input. Got </span><span class="si">{</span><span class="n">phases</span><span class="si">}</span><span class="s1"> of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">active_phases</span></div>
-
-
-<div class="viewcode-block" id="generate_dof">
-<a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.generate_dof">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">generate_dof</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">active_comps</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Accept a Phase object and a set() of the active components.</span>
-<span class="sd">    Return a tuple of variable names and the sublattice degrees of freedom.</span>
-<span class="sd">    """</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="s2">"generate_dof is deprecated and will be removed in a future version "</span>
-    <span class="n">msg</span> <span class="o">+=</span> <span class="s2">"of pycalphad. The correct way to determine the degrees of freedom "</span>
-    <span class="n">msg</span> <span class="o">+=</span> <span class="s2">"of a particular 'active' phase is to use Model.constituents."</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">FutureWarning</span><span class="p">)</span>
-    <span class="n">variables</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">sublattice_dof</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-        <span class="n">dof</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_comps</span><span class="p">)):</span>
-            <span class="n">variables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span><span class="p">))</span>
-            <span class="n">dof</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">sublattice_dof</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dof</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">variables</span><span class="p">,</span> <span class="n">sublattice_dof</span></div>
 
 
 <div class="viewcode-block" id="endmember_matrix">
@@ -956,7 +932,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=cb7e2185"></script>
+</div><script src="../../../_static/documentation_options.js?v=c8a1ce48"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

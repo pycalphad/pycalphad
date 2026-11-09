@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.plot.binary.map - pycalphad 0.11.3.dev45+g01389f02f documentation</title>
+        <title>pycalphad.plot.binary.map - pycalphad 0.11.3.dev46+g994208846 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev45+g01389f02f documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev46+g994208846 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev45+g01389f02f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev46+g994208846 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -296,6 +296,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># needs Python 3.13+</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">warnings</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.codegen.phase_record_factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
@@ -311,6 +316,7 @@
 
 <div class="viewcode-block" id="map_binary">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.map.map_binary">[docs]</a>
+<span class="nd">@deprecated</span><span class="p">(</span><span class="s2">"map_binary is deprecated. Use `pycalphad.mapping.TielineStrategy` instead."</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">map_binary</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">eq_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">boundary_sets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="kc">False</span><span class="p">,):</span>
 <span class="w">    </span><span class="sd">"""</span>
@@ -499,7 +505,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=cb7e2185"></script>
+</div><script src="../../../../_static/documentation_options.js?v=c8a1ce48"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>
