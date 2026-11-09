@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.conditions - pycalphad 0.11.3.dev43+g0cbc613c0 documentation</title>
+        <title>pycalphad.core.conditions - pycalphad 0.11.3.dev44+gcf9a4c36a documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev43+g0cbc613c0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev43+g0cbc613c0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev44+gcf9a4c36a documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -295,6 +295,7 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_property</span><span class="p">,</span> <span class="n">as_quantity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.computed_property</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearCombination</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q_</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
@@ -438,6 +439,15 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MassFraction</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">ChemicalPotential</span><span class="p">))</span> <span class="ow">and</span> <span class="n">prop</span><span class="o">.</span><span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wks</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> refers to non-existent component'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">LinearCombination</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">symbols</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">symbol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">symbol</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s1"> is phase-local; linear combination conditions only support overall mole fractions'</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">symbol</span><span class="o">.</span><span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wks</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s1"> refers to non-existent component'</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wks</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">prop</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> refers to non-existent constituent'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
 
@@ -538,7 +548,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=e9a50bdf"></script>
+</div><script src="../../../_static/documentation_options.js?v=346e671a"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
