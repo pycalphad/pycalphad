@@ -7,10 +7,10 @@
         <link rel="prefetch" href="_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Install PyCalphad - pycalphad 0.11.3.dev47+g5326d9182 documentation</title>
+        <title>Install PyCalphad - pycalphad 0.12.1.dev1+ga7ea88fac documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.11.3.dev47+g5326d9182 documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.12.1.dev1+ga7ea88fac documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev47+g5326d9182 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.12.1.dev1+ga7ea88fac documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -309,12 +309,12 @@ The common workflows can roughly be broken down into the following categories:</
 </ul>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Project-based</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Project-based</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-3">
-uv</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-3-content" class="sd-tab-label" for="sd-tab-item-3">
+uv</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content">
 <p>Here is a step-by-step guide to setting up a project to use PyCalphad with <a class="reference external" href="https://docs.astral.sh/uv/">uv</a>, a Python package manager.</p>
 <ol class="arabic">
 <li><p>Install uv by following <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">the instructions in the uv documentation</a>.</p></li>
@@ -355,8 +355,8 @@ To run a Python script, you can use <code class="docutils literal notranslate"><
 </div>
 </div>
 <input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-4">
-pixi</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-4-content" class="sd-tab-label" for="sd-tab-item-4">
+pixi</label><div class="sd-tab-content docutils" id="sd-tab-item-4-content">
 <p>If you work with non-Python packages, you may prefer to install PyCalphad as a <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/index.html">conda</a> package, so that you can use the same workflow for packages which are not available on <a class="reference external" href="https://pypi.org/">PyPI</a>, the Python Package Index.
 Conda can manage packages in any language, so you can use it to install Python itself, compilers, and other languages.</p>
 <p>The steps to install PyCalphad from <a class="reference external" href="https://conda-forge.org/">conda-forge</a> using <a class="reference external" href="https://pixi.sh/latest/">pixi</a> are very similar to the steps for uv:</p>
@@ -392,15 +392,15 @@ pixi<span class="w"> </span>run<span class="w"> </span>jupyter<span class="w"> <
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Environment-based</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Environment-based</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <p>In project-based workflows, a project is a directory containing a manifest file describing the project, a lock file describing the exact dependencies of the project, and the project’s (potentially multiple) environments.
 In contrast, in environment-based workflows you install packages into an environment, which you can activate and deactivate from any directory.
 These workflows are well-established, but lack some reproducibility benefits of project-based workflows.</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-5">
-pip</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-5-content" class="sd-tab-label" for="sd-tab-item-5">
+pip</label><div class="sd-tab-content docutils" id="sd-tab-item-5-content">
 <ol class="arabic">
 <li><p><a class="reference external" href="https://www.python.org/downloads/">Install Python</a>.</p></li>
 <li><p>A recommended best practice is to install PyCalphad into a virtual environment.
@@ -420,8 +420,8 @@ This environment must be activated every time you use PyCalphad.</p>
 </ol>
 </div>
 <input id="sd-tab-item-6" name="sd-tab-set-2" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-6">
-conda</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-6-content" class="sd-tab-label" for="sd-tab-item-6">
+conda</label><div class="sd-tab-content docutils" id="sd-tab-item-6-content">
 <p><a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/index.html">conda</a> is a package manager that can install Python and non-Python packages.
 If you don’t have conda already, <a class="reference external" href="https://conda-forge.org/download/">Miniforge</a> is the recommended way to install it.</p>
 <p>To create an environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-env</span></code> with PyCalphad installed from <a class="reference external" href="https://conda-forge.org/">conda-forge</a>:</p>
@@ -434,14 +434,14 @@ conda<span class="w"> </span>activate<span class="w"> </span>pycalphad-env
 </div>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-Development version</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+Development version</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <p>The source code for the latest development version of PyCalphad is available on <a class="reference external" href="https://github.com/pycalphad/pycalphad">GitHub</a>.
 Development versions are built from source and installed in editable mode, which is mainly needed by users who wish to contribute to PyCalphad.</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-7">
-Quickstart</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-7-content" class="sd-tab-label" for="sd-tab-item-7">
+Quickstart</label><div class="sd-tab-content docutils" id="sd-tab-item-7-content">
 <p>You will need a working version of <a class="reference external" href="https://git-scm.com/">git</a> to download the source code and <a class="reference external" href="https://docs.astral.sh/uv/">uv</a> to install PyCalphad and its dependencies.
 Installing development versions of PyCalphad also requires a working C++ compiler.</p>
 <ul class="simple">
@@ -461,8 +461,8 @@ uv<span class="w"> </span>sync
 </div>
 </div>
 <input id="sd-tab-item-8" name="sd-tab-set-3" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-8">
-Detailed instructions</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-8-content" class="sd-tab-label" for="sd-tab-item-8">
+Detailed instructions</label><div class="sd-tab-content docutils" id="sd-tab-item-8-content">
 <p>The <a class="reference internal" href="developer/onboarding.html"><span class="doc">onboarding guide</span></a> has detailed instructions for setting up a development environment, including installing the prerequisite tools, configuring VSCode, setting up your fork and remote repositories, building a local version of this website, and troubleshooting.
 Please read the <a class="reference internal" href="developer/contributing.html"><span class="doc">contributing guide</span></a> before submitting a pull request.</p>
 <p class="rubric">Upgrading</p>
@@ -529,11 +529,11 @@ Questions about installing and using PyCalphad can be addressed on the <a class=
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=3e1cc692"></script>
+</div><script src="_static/documentation_options.js?v=74de3932"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="_static/design-tabs.js?v=fcb327ea"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>
