@@ -34,7 +34,6 @@ mingw32_link_args = [
 
 class Build(build_ext):
     def build_extension(self, ext):
-        # Cythonize at build time to keep cythonized sources out of the sdist
         ext.sources = cythonize(
             ext,
             include_path=CYTHON_EXTENSION_INCLUDES,
