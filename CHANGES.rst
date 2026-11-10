@@ -1,6 +1,82 @@
 Release Notes
 =============
 
+0.12.0 (2026-11-09)
+-------------------
+
+PyCalphad 0.12 contains a substantial number of features, fixes, and performance improvements.
+We've expanded support for database parsing and more modern models, and corrected several model implementation bugs.
+Normal paths through the code should be about 50% faster, with larger gains in multi-component systems and fewer failures overall.
+
+This release contains one breaking change: model contributions must now return their energies per mole of formula units, rather than per mole of atoms.
+
+We have a number of new contributors to welcome and thank for their contributions to this exciting release:
+
+* `@sapunyangkut <https://github.com/sapunyangkut>`_
+* `@Zhyrek <https://github.com/Zhyrek>`_
+* `@sorkins <https://github.com/sorkins>`_
+* `@mts42 <https://github.com/mts42>`_
+* `@dwonshin <https://github.com/dwonshin>`_
+* `@TanjaKovacevic <https://github.com/TanjaKovacevic>`_
+
+Features
+^^^^^^^^
+* Performance improvements:
+
+  * Finding starting points (:issue:`758`, :issue:`725`)
+  * Running the Newton refinement solver (:issue:`758`)
+  * Avoid sorting all samples in mapping global minimum checks (:issue:`740`)
+  * Raise the ``build_functions`` cache limit to prevent rebuilding ``PhaseRecord`` objects (:issue:`741`)
+
+* Merge ``BinaryStrategy`` and ``TernaryStrategy`` into ``TielineStrategy`` (:issue:`722`). ``TielineStrategy`` and ``IsoplethStrategy`` now generically support the cases where tie-lines are in and out of the plane of the mapping calculation, respectively. Mapping still supports only 2D axes for now.
+* Explicit support for unary P/T diagrams in ``TielineStrategy`` (:issue:`722`)
+* Expanded TDB support (``DIFFUSION``, ``LNTHETA``, ``LNTHETAF``, ``VB``, and the status bit form of ``NEVER_DISORDER``) and parsing of TDB syntax that is not used by PyCalphad (``COMPOSITION_SETS``, ``MAJOR_CONSTITUENT``, ``FRACTION_LIMITS``) (:issue:`720`, :issue:`723`)
+* Better error messages when setting ratio conditions of nonexistent elements (:issue:`761`)
+
+Fixes
+^^^^^
+* Fix several model implementation issues:
+
+  * Ionic liquids: correct cation-neutral ionic-liquid interactions (:issue:`730`)
+  * Fix Xiong magnetic energy for non-positive magnetic moments (:issue:`752`)
+  * Fix ``Model.shift_reference_state`` for species constituents (:issue:`755`)
+
+* Mapping correctness improvements:
+
+  * Handle plotting without tie-line data (:issue:`718`)
+  * Fix mapping with custom Gibbs energy (:issue:`727`)
+  * A number of correctness improvements in binary phase diagram mapping that remove duplicate work, miss fewer phase regions, and prevent extraneous lines (:issue:`722`)
+
+* Numerical correctness fixes:
+
+  * Solver convergence was sometimes erroneously declared before all composition set internal degrees of freedom stopped changing (:issue:`716`)
+  * Solver convergence criteria for mass residuals were tuned and fixed to better handle linear combination conditions (:issue:`716`)
+  * Add second derivative (Hessian) contributions to the phase matrix for moles of elements (affected ionic liquids, whose moles are non-linear with respect to site fractions) (:issue:`716`)
+  * Fix Jansson derivatives for phases where one mole of atoms is not also one mole of formula units (:issue:`737`)
+  * Fix crash in solver for large systems due to wrong ``iwork`` (:issue:`747`)
+  * Fix sampling of (non-ionic-liquid) phases that had charged constituents that changed their alphabetical sorting order (:issue:`719`)
+  * Prevent (non-ionic-liquid) phases with charged constituents that are charge neutral by construction from contributing internal charge constraints that make their phase matrix rank deficient (:issue:`710`)
+
+* Fix ratio condition denominators when conditions are not in sorted order (:issue:`761`)
+
+Documentation
+^^^^^^^^^^^^^
+* Update installation guide for project- vs. environment-based workflows, similar to the NumPy and SciPy installation docs (:issue:`759`)
+* Add Reference section to documentation (:issue:`709`)
+* Documentation reorganization (:issue:`689`)
+
+Maintenance
+^^^^^^^^^^^
+* **BREAKING**: Refactor ``Model.ast`` to be in formula units (:issue:`724`)
+* Remove deprecated ``generate_dof`` helper utility and deprecate legacy (non-mapping) phase diagram plotting code (:issue:`763`)
+* Dependencies:
+
+  * Fix NumPy 2.5 shape deprecations (:issue:`702`)
+  * Support SymEngine 0.15 and later, skipping the buggy 0.14.x series (:issue:`756`). Big thanks to the SymEngine team!
+  * Support Python 3.14 and 3.15 (:issue:`756`)
+
+* Fix uv cache-key globs to the pycalphad package so the code is rebuilt when Cython files change (:issue:`749`)
+
 0.11.2 (2026-06-05)
 -------------------
 
