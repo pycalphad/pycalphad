@@ -33,6 +33,15 @@ mingw32_link_args = [
 ]
 
 class Build(build_ext):
+    def build_extension(self, ext):
+        # Cythonize at build time to keep cythonized sources out of the sdist
+        ext.sources = cythonize(
+            ext,
+            include_path=CYTHON_EXTENSION_INCLUDES,
+            compiler_directives=CYTHON_COMPILER_DIRECTIVES,
+        )[0].sources
+        return super().build_extension(ext)
+
     def build_extensions(self):
         if self.compiler.compiler_type == "mingw32":
             for ext in self.extensions:
@@ -40,11 +49,7 @@ class Build(build_ext):
         return super().build_extensions()
 
 setup(
-    ext_modules=cythonize(
-        CYTHON_EXTENSION_MODULES,
-        include_path=CYTHON_EXTENSION_INCLUDES,
-        compiler_directives=CYTHON_COMPILER_DIRECTIVES,
-    ),
+    ext_modules=CYTHON_EXTENSION_MODULES,
     cmdclass={"build_ext": Build},
     package_data={
         'pycalphad.core': ['*.pxd'] + (['*.pyx', '*.c', '*.h', '*.cpp', '*.hpp'] if os.getenv('CYTHON_COVERAGE', False) else []),
