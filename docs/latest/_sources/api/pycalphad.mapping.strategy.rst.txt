@@ -4,6 +4,14 @@ pycalphad.mapping.strategy package
 Submodules
 ----------
 
+pycalphad.mapping.strategy.binary\_strategy module
+--------------------------------------------------
+
+.. automodule:: pycalphad.mapping.strategy.binary_strategy
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pycalphad.mapping.strategy.isopleth\_strategy module
 ----------------------------------------------------
 
@@ -32,6 +40,14 @@ pycalphad.mapping.strategy.strategy\_data module
 ------------------------------------------------
 
 .. automodule:: pycalphad.mapping.strategy.strategy_data
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+pycalphad.mapping.strategy.ternary\_strategy module
+---------------------------------------------------
+
+.. automodule:: pycalphad.mapping.strategy.ternary_strategy
    :members:
    :show-inheritance:
    :undoc-members:
