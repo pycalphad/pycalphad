@@ -55,3 +55,5 @@ env/
 *.sublime-project
 *.sublime-workspace
 *.cpp
+uv.lock
+.vscode/settings.json

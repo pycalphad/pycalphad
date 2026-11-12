@@ -1,0 +1,1207 @@
+
+<database xmlns="http://calphad.org/thermml/v0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xi="http://www.w3.org/2001/XInclude" xsi:schemaLocation="http://calphad.org/thermml/v0 ../../schema/thermml-schema.xsd" name="CrNi-16Tan" version="0.1.0">
+    <metadata>
+        <title>CrNi-16Tan</title>
+        <version>1.0</version>
+        <description>Database for Cr-Ni from F. Tang and B. Hallstedt, 2016
+
+F. Tang, B. Hallstedt, Calphad, 55, 260-69(2016).
+
+Dataset created 2016.11.01 by Bengt Hallstedt.
+
+Metastable ordering in fcc and bcc from N. Dupin.
+
+The hcp interaction is set 2kJ more positive than the fcc interaction
+to avoid having hcp stable in Cr-Ni-C.
+
+------------------------------------------------------------------------------
+
+ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !</description>
+        <license>unspecified</license>
+        <authors/>
+        <created>2025-04-01</created>
+        <revisions>
+            <revision>
+                <version>1.0</version>
+                <date>2025-04-01</date>
+                <author>ChemSage automated tests</author>
+                <description>Initial XML fixture generated from ChemSage DAT input 'CrNi-16Tan.tdb' during an automated test run.</description>
+            </revision>
+        </revisions>
+        <references/>
+    </metadata>
+    <systemComponents>
+        <systemComponent symbol="Cr" refstate="BCC_A2" molarMass="51.996" h298="4050" s298="23.5429"/>
+        <systemComponent symbol="Ni" refstate="FCC_A1" molarMass="58.69" h298="4787" s298="29.7955"/>
+    </systemComponents>
+    <phases>
+        <phase xsi:type="CEFPhaseType" name="LIQUID" state="liquid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Cr Ni" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Cr">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{GLIQCR}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Ni">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{GLIQNI}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Cr,Ni">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Ni"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>16Tan</ref>
+                        <comment/>
+                        <expr rank="0">
+                            -13300+2.7*T
+                        </expr>
+                        <expr rank="1">
+                            +2900+1*T
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="FCC_A1" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1 1">
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>0.3333333333333333</AFMFactor>
+                    <structureFactorP>0.28</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{Cr:Va#FCC_A1}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Neel">
+                            369.6666666666667
+                        </temperature>
+                        <moment>0.82</moment>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{GHSERNI}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Curie">
+                            633
+                        </temperature>
+                        <moment>0.52</moment>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Cr,Ni:Va">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>16Tan</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +4300-8.9*T
+                        </expr>
+                        <expr rank="1">
+                            +27000-13.8*T
+                        </expr>
+                    </property>
+                    <property xsi:type="TCL">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            -3605
+                        </expr>
+                    </property>
+                    <property xsi:type="BML">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            -1.91
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="A1_FCC" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1 1">
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>0.3333333333333333</AFMFactor>
+                    <structureFactorP>0.28</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{Cr:Va#A1_FCC}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Neel">
+                            369.6666666666667
+                        </temperature>
+                        <moment>0.82</moment>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{GHSERNI}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Curie">
+                            633
+                        </temperature>
+                        <moment>0.52</moment>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Cr,Ni:Va">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>16Tan</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +4300-8.9*T
+                        </expr>
+                        <expr rank="1">
+                            +27000-13.8*T
+                        </expr>
+                    </property>
+                    <property xsi:type="TCL">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            -3605
+                        </expr>
+                    </property>
+                    <property xsi:type="BML">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            -1.91
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFOrderedPhaseType" name="FCC_4SL" disorderedPhase="A1_FCC" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="0.25 0.25 0.25 0.25 1">
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>0.3333333333333333</AFMFactor>
+                    <structureFactorP>0.28</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Cr:Cr:Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>01Dup</ref>
+                        <comment/>
+                        <expr>+1*{GFCR3NI}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Cr:Cr:Ni:Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>01Dup</ref>
+                        <comment/>
+                        <expr>+1*{GFCR2NI2}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Cr:Ni:Ni:Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>01Dup</ref>
+                        <comment/>
+                        <expr>+1*{GFCRNI3}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions/>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="BCC_A2" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1 3">
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>1</AFMFactor>
+                    <structureFactorP>0.4</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{GHSERCR}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Neel">
+                            311.5
+                        </temperature>
+                        <moment>0.008</moment>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{Ni:Va#BCC_A2}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Curie">
+                            575
+                        </temperature>
+                        <moment>0.85</moment>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Cr,Ni:Va">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>16Tan</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +14500-9*T
+                        </expr>
+                        <expr rank="1">
+                            +27500-7.6*T
+                        </expr>
+                    </property>
+                    <property xsi:type="TCL">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            2373
+                        </expr>
+                        <expr rank="1">
+                            617
+                        </expr>
+                    </property>
+                    <property xsi:type="BML">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            4
+                        </expr>
+                        <expr rank="1">
+                            0
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="A2_BCC" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1 3">
+                    <site constituents="Cr Ni Va" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>1</AFMFactor>
+                    <structureFactorP>0.4</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{GHSERCR}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Neel">
+                            311.5
+                        </temperature>
+                        <moment>0.008</moment>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{Ni:Va#A2_BCC}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Curie">
+                            575
+                        </temperature>
+                        <moment>0.85</moment>
+                    </property>
+                </endmember>
+                <endmember name="Va:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>01Sun</ref>
+                        <comment/>
+                        <expr>+1*{ZERO}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Cr,Va:Va">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>02Sun</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +120*T
+                        </expr>
+                    </property>
+                </interaction>
+                <interaction name="Ni,Va:Va">
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>99Dup1</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +1*{B2NIVA}+1*{LB2NIVA}
+                        </expr>
+                    </property>
+                </interaction>
+                <interaction name="Cr,Ni:Va">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>16Tan</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +14500-9*T
+                        </expr>
+                        <expr rank="1">
+                            +27500-7.6*T
+                        </expr>
+                    </property>
+                    <property xsi:type="TCL">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            2373
+                        </expr>
+                        <expr rank="1">
+                            617
+                        </expr>
+                    </property>
+                    <property xsi:type="BML">
+                        <ref>86Din</ref>
+                        <expr rank="0">
+                            4
+                        </expr>
+                        <expr rank="1">
+                            0
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFOrderedPhaseType" name="B2_BCC" disorderedPhase="A2_BCC" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="0.5 0.5 3">
+                    <site constituents="Cr Ni Va" wyckoff=""/>
+                    <site constituents="Cr Ni Va" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>1</AFMFactor>
+                    <structureFactorP>0.4</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Va:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>16Hal2</ref>
+                        <comment/>
+                        <expr>+1*{Cr:Va:Va#B2_BCC}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Va:Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>16Hal2</ref>
+                        <comment/>
+                        <expr>+1*{Va:Cr:Va#B2_BCC}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Va:Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>99Dup1</ref>
+                        <comment/>
+                        <expr>+1*{Va:Ni:Va#B2_BCC}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Va:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>99Dup1</ref>
+                        <comment/>
+                        <expr>+1*{Ni:Va:Va#B2_BCC}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Cr:Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>01Dup</ref>
+                        <comment/>
+                        <expr>+1*{Cr:Ni:Va#B2_BCC}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>01Dup</ref>
+                        <comment/>
+                        <expr>+1*{Ni:Cr:Va#B2_BCC}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions/>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="HCP_A3" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+                <specie name="Va" composition="Va"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1 0.5">
+                    <site constituents="Cr Ni" wyckoff=""/>
+                    <site constituents="Va" wyckoff=""/>
+                </sublattices>
+                <magnetic xsi:type="IHJMagneticType">
+                    <ref/>
+                    <comment/>
+                    <AFMFactor>0.3333333333333333</AFMFactor>
+                    <structureFactorP>0.28</structureFactorP>
+                </magnetic>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{Cr:Va#HCP_A3}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Neel">
+                            369.6666666666667
+                        </temperature>
+                        <moment>0.82</moment>
+                    </property>
+                </endmember>
+                <endmember name="Ni:Va">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <expr>+1*{Ni:Va#HCP_A3}</expr>
+                    </property>
+                    <property xsi:type="M">
+                        <ref>91Din</ref>
+                        <comment/>
+                        <temperature type="Curie">
+                            633
+                        </temperature>
+                        <moment>0.52</moment>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Cr,Ni:Va">
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                            <const species="Ni"/>
+                        </site>
+                        <site>
+                            <const species="Va"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref>Same</ref>
+                        <comment/>
+                        <expr rank="0">
+                            +6300-8.9*T
+                        </expr>
+                        <expr rank="1">
+                            +27000-13.8*T
+                        </expr>
+                    </property>
+                    <property xsi:type="TCL">
+                        <ref>95Dup</ref>
+                        <expr rank="0">
+                            -3605
+                        </expr>
+                    </property>
+                    <property xsi:type="BML">
+                        <ref>95Dup</ref>
+                        <expr rank="0">
+                            -1.91
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="CRNI2" state="solid">
+            <description/>
+            <species>
+                <specie name="Cr" composition="Cr"/>
+                <specie name="Ni" composition="Ni"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1 2">
+                    <site constituents="Cr" wyckoff=""/>
+                    <site constituents="Ni" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Cr:Ni">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Cr"/>
+                        </site>
+                        <site>
+                            <const species="Ni"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref>16Tan</ref>
+                        <comment/>
+                        <expr>+1*{Cr:Ni#CRNI2}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions/>
+        </phase>
+    </phases>
+    <globalExpressions>
+        <expression xsi:type="FunctionTypeExpr" name="B2NIVA">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +162397.3-27.40575*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GBCCNI">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{GHSERNI}+8715.084-3.556*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GFCCCR">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{GHSERCR}+7284+0.163*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GFCR2NI2">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +4*{UFCRNI}
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GFCR3NI">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +3*{UFCRNI}
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GFCRNI3">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +3*{UFCRNI}
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GHSERCR">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="2180">
+                -8856.94+157.48*T-26.908*T*LN(T)+1.8943e-3*T**2-1.4772e-6*T**3+139250*T**(-1)
+            </range>
+            <range low="2180" high="6000">
+                -34869.344+344.18*T-50*T*LN(T)-2.8853e32*T**(-9)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GHSERNI">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="1728">
+                -5179.159+117.854*T-22.096*T*LN(T)-4.8407e-3*T**2
+            </range>
+            <range low="1728" high="3000">
+                -27840.62+279.134977*T-43.1*T*LN(T)+1.1275e31*T**(-9)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GLIQCR">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="2180">
+                +1*{GHSERCR}+24339.955-11.420225*T+2.3762e-21*T**7
+            </range>
+            <range low="2180" high="6000">
+                -16459.984+335.616316*T-50*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="GLIQNI">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="1728">
+                +1*{GHSERNI}+16414.686-9.397*T-3.8232e-21*T**7
+            </range>
+            <range low="1728" high="3000">
+                -9549.817+268.597977*T-43.1*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="LB2NIVA">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                -64024.38+26.49419*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="R">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +8.31451
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="UFCRNI">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                -1980
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="UN_ASS">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="USCRNI">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{UFCRNI}
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="ZERO">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Cr:Va#FCC_A1">
+            <ref>91Din</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{GHSERCR}+7284+0.163*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Cr:Va#A1_FCC">
+            <ref>91Din</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{GHSERCR}+7284+0.163*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Ni:Va#BCC_A2">
+            <ref>91Din</ref>
+            <comment/>
+            <range low="298.15" high="3000">
+                +1*{GHSERNI}+8715.084-3.556*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Ni:Va#A2_BCC">
+            <ref>91Din</ref>
+            <comment/>
+            <range low="298.15" high="3000">
+                +1*{GHSERNI}+8715.084-3.556*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Cr:Va:Va#B2_BCC">
+            <ref>16Hal2</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +100000
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Va:Cr:Va#B2_BCC">
+            <ref>16Hal2</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +100000
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Va:Ni:Va#B2_BCC">
+            <ref>99Dup1</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +0.5*{B2NIVA}-0.5*{LB2NIVA}
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Ni:Va:Va#B2_BCC">
+            <ref>99Dup1</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +0.5*{B2NIVA}-0.5*{LB2NIVA}
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Cr:Ni:Va#B2_BCC">
+            <ref>01Dup</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +4000
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Ni:Cr:Va#B2_BCC">
+            <ref>01Dup</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +4000
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Cr:Va#HCP_A3">
+            <ref>91Din</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{GHSERCR}+4438
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Ni:Va#HCP_A3">
+            <ref>91Din</ref>
+            <comment/>
+            <range low="298.15" high="3000">
+                +1*{GHSERNI}+1046+1.255*T
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Cr:Ni#CRNI2">
+            <ref>16Tan</ref>
+            <comment/>
+            <range low="298.15" high="6000">
+                +1*{GHSERCR}+2*{GHSERNI}-6000-6.8*T
+            </range>
+        </expression>
+    </globalExpressions>
+</database>
