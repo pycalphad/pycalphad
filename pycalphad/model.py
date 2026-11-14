@@ -1342,7 +1342,7 @@ class Model(object):
         ordered_phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, ordered_phase)
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
         disordered_phase = dbe.phases[disordered_phase_name]
-        disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
+        disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name, parameters=self._parameters_arg)
         if never_disorder:
             # Take configurational entropy from the ordered phase only
             disordered_model.models["idmix"] = S.Zero

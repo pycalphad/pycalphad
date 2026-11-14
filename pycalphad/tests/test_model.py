@@ -4,7 +4,7 @@ The test_model module contains unit tests for the Model object.
 from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
-from symengine import Piecewise
+from symengine import Piecewise, Symbol
 import numpy as np
 import pickle
 import pytest
@@ -94,6 +94,15 @@ def test_degree_of_ordering(load_database):
     eqx = equilibrium(dbf, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
     print('Degree of ordering: {}'.format(eqx.degree_of_ordering.values.flatten()))
     assert np.isclose(eqx.degree_of_ordering.values.flatten(), np.array([0.6666]), atol=1e-4)
+
+
+@select_database("alfe.tdb")
+def test_ordered_phase_keeps_parameters_of_its_disordered_phase(load_database):
+    "Parameters of the disordered phase stay symbolic in the ordered phase's model."
+    dbf = load_database()
+    # GALBCC enters only G(BCC_A2,AL:VA;0), the disordered part of B2_BCC
+    mod = Model(dbf, ['AL', 'FE', 'VA'], 'B2_BCC', parameters=['GALBCC'])
+    assert Symbol('GALBCC') in mod.GM.free_symbols
 
 def test_detect_pure_vacancy_phases():
     "Detecting a pure vacancy phase"
