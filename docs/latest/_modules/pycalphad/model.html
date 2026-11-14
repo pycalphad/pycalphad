@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.12.1.dev1+ga7ea88fac documentation</title>
+        <title>pycalphad.model - pycalphad 0.12.1.dev2+g54b026709 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.12.1.dev1+ga7ea88fac documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.12.1.dev2+g54b026709 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.12.1.dev1+ga7ea88fac documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.12.1.dev2+g54b026709 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1688,7 +1688,7 @@
         <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">ordered_phase</span><span class="p">)</span>
         <span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
         <span class="n">disordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase_name</span><span class="p">]</span>
-        <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="n">disordered_phase_name</span><span class="p">)</span>
+        <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="n">disordered_phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters_arg</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">never_disorder</span><span class="p">:</span>
             <span class="c1"># Take configurational entropy from the ordered phase only</span>
             <span class="n">disordered_model</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s2">"idmix"</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
@@ -2091,7 +2091,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=74de3932"></script>
+</div><script src="../../_static/documentation_options.js?v=c8cc7b33"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
