@@ -9,7 +9,7 @@ from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
 
 
-cpdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
+cpdef bint add_new_phases(object composition_sets, object phase_records,
                           object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                           double[::1] state_variables, double minimum_df, bint verbose) except *:
     """
@@ -26,29 +26,11 @@ cpdef bint add_new_phases(object composition_sets, object removed_compsets, obje
     cdef double[:,::1] current_grid_X = grid.X[*current_idx, ...]
     cdef np.ndarray current_grid_Phase = grid.Phase[*current_idx, ...]
     cdef unicode df_phase_name
-    cdef CompositionSet compset = composition_sets[0]
-    cdef int num_statevars = len(compset.phase_record.state_variables)
+    cdef CompositionSet compset
     cdef bint distinct = False
     driving_forces = np.dot(current_grid_X, chemical_potentials) - grid.GM[*current_idx, ...]
     for i in range(driving_forces.shape[0]):
         if driving_forces[i] > largest_df:
-            df_comp = current_grid_Y[i]
-            df_phase_name = <unicode>current_grid_Phase[i]
-            distinct = True
-            for compset in removed_compsets:
-                if df_phase_name != compset.phase_record.phase_name:
-                    continue
-                distinct = False
-                for comp_idx in range(compset.phase_record.phase_dof):
-                    if abs(df_comp[comp_idx] - compset.dof[num_statevars+comp_idx]) > 10*COMP_DIFFERENCE_TOL:
-                        distinct = True
-                        break
-                if not distinct:
-                    break
-            if not distinct:
-                if verbose:
-                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(compset.X)) + ' is not distinct from previously removed phase')
-                continue
             largest_df = driving_forces[i]
             df_idx = i
     if largest_df > minimum_df:
@@ -101,7 +83,6 @@ def add_nearly_stable(object composition_sets, object phase_records,
     cdef CompositionSet compset = composition_sets[0]
     cdef set entered_phases = {compset.phase_record.phase_name for compset in composition_sets}
     cdef PhaseRecord phase_record
-    cdef int num_statevars = len(compset.phase_record.state_variables)
     cdef int df_idx, minimum_df_idx
     cdef bint phases_added = False
     driving_forces = np.dot(current_grid_X, chemical_potentials) - current_grid_GM
@@ -158,17 +139,11 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
         Modified with equilibrium values.
     """
     cdef double indep_sum
-    cdef int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, dof_idx, comp_idx, phase_idx, sfidx, pfidx, m, n
+    cdef int phase_idx
     cdef bint converged, changed_phases
-    cdef double vmax, minimum_df
     cdef PhaseRecord phase_record
     cdef CompositionSet compset
-    cdef double[:,::1] l_hessian
-    cdef double[:,:] inv_hess
-    cdef double[::1] gradient_term, mass_buf
-    cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
-    cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
-    cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials
     iter_solver = solver if solver is not None else Solver(verbose=verbose, remove_metastable=True)
 
     # Factored out via profiling
@@ -212,7 +187,6 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             continue
 
         composition_sets = []
-        removed_compsets = []
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
             if phase_name == '' or phase_name == '_FAKE_':
                 continue
@@ -224,17 +198,14 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             compset.update(sfx, phase_amt, state_variable_values)
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
-        energy = prop_GM_values[it.multi_index]
         add_nearly_stable(composition_sets, phase_records, grid, curr_idx, chemical_potentials,
                           state_variable_values, -1000, verbose)
-        #print('Composition Sets', composition_sets)
         phase_amt_sum = 0.0
         for compset in composition_sets:
             phase_amt_sum += compset.NP
         for compset in composition_sets:
             compset.NP /= phase_amt_sum
         iterations = 0
-        history = []
         while (iterations < 10) and (not iter_solver.ignore_convergence):
             if len(composition_sets) == 0:
                 changed_phases = False
@@ -242,7 +213,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             result = iter_solver.solve(composition_sets, cur_conds)
 
             chemical_potentials[:] = result.chemical_potentials
-            changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
+            changed_phases = add_new_phases(composition_sets, phase_records,
                                             grid, curr_idx, chemical_potentials, state_variable_values,
                                             1e-4, verbose)
             iterations += 1
@@ -277,15 +248,12 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             for phase_idx in range(len(composition_sets), prop_Phase_values.shape[-1]):
                 prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = ''
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
-            var_offset = 0
-            total_comp = np.zeros(prop_X_values.shape[-1])
             for phase_idx in range(len(composition_sets)):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
                     compset.dof[len(compset.phase_record.state_variables):]
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
                 prop_GM_values[it.multi_index] += compset.NP * compset.energy
-                var_offset += compset.phase_record.phase_dof
         else:
             prop_MU_values[it.multi_index] = np.nan
             prop_NP_values[it.multi_index] = np.nan
