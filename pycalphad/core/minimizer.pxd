@@ -9,7 +9,7 @@ cdef class SystemState:
     cdef double largest_chemical_potential_difference
     cdef double[::1] phase_amt, previous_chemical_potentials, delta_statevars
     cdef public double[::1] chemical_potentials
-    cdef double[:, ::1] phase_compositions, delta_ms
+    cdef double[:, ::1] phase_compositions
     cdef double[1] largest_statevar_change, largest_phase_amt_change, largest_y_change
     cdef int[::1] free_stable_compset_indices
     cdef double system_amount
