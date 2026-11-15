@@ -6,11 +6,13 @@ from pycalphad.core.constants import MIN_SITE_FRACTION
 cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
 from libc.math cimport isnan, INFINITY
+from libc.float cimport DBL_EPSILON
 
 @cython.boundscheck(False)
 cdef void lstsq(double *A, int M, int N, double* x, double rcond) noexcept nogil:
     # Note: This function will destroy input matrix A
     cdef int i
+    cdef int LDB = max(M, N)
     cdef int NRHS = 1
     cdef int info = 0
     cdef int SMLSIZ = 50  # this is a guess
@@ -30,7 +32,7 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) noexcept nogil
         for i in range(N):
             x[i] = 0
     else:
-        cython_lapack.dgelsd(&M, &N, &NRHS, A, &N, x, &M, singular_values, &rcond, &rank,
+        cython_lapack.dgelsd(&M, &N, &NRHS, A, &M, x, &LDB, singular_values, &rcond, &rank,
                             work, &lwork, iwork, &info)
     free(iwork)
     free(singular_values)
@@ -1166,8 +1168,35 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             phases_changed = True
     return phases_changed
 
+cdef int ratio_test(SystemSpecification spec, SystemState state, int entering_cs_idx, int[::1] stable_cs_indices):
+    "Stable composition set that the entering composition set replaces with no phase amount becoming negative."
+    # hyperplane() replaces each vertex of the simplex in turn and keeps the trial simplex with the largest smallest
+    # fraction. One solve gives the same choice: write the entering composition as a combination of the stable
+    # compositions (coefs, over the mass-balanced components). With phase amounts n, replacing stable set k gives the
+    # entering set n_k / coefs[k] and each other set j n_j - coefs[j] * n_k / coefs[k], which are all nonnegative for
+    # the smallest n_k / coefs[k] with coefs[k] > 0.
+    cdef int num_free_components = spec.free_chemical_potential_indices.shape[0]
+    cdef int num_stable = stable_cs_indices.shape[0]
+    cdef double[::1, :] stable_compositions = np.empty((num_free_components, num_stable), order='F')
+    cdef double[::1] coefs = np.zeros(max(num_free_components, num_stable))
+    cdef int i, j, comp_idx
+    cdef int leaving_cs_idx = stable_cs_indices[0]
+    cdef double smallest_ratio = INFINITY
+    for i in range(num_free_components):
+        comp_idx = spec.free_chemical_potential_indices[i]
+        coefs[i] = state.phase_compositions[entering_cs_idx, comp_idx]
+        for j in range(num_stable):
+            stable_compositions[i, j] = state.phase_compositions[stable_cs_indices[j], comp_idx]
+    lstsq(&stable_compositions[0, 0], num_free_components, num_stable, &coefs[0],
+          max(num_free_components, num_stable) * DBL_EPSILON)
+    for j in range(num_stable):
+        if coefs[j] > 0 and state.phase_amt[stable_cs_indices[j]] / coefs[j] < smallest_ratio:
+            smallest_ratio = state.phase_amt[stable_cs_indices[j]] / coefs[j]
+            leaving_cs_idx = stable_cs_indices[j]
+    return leaving_cs_idx
+
 cdef bint change_phases(SystemSpecification spec, SystemState state):
-    cdef int idx, i, cs_idx, least_removed_cs_idx, smallest_df_cs_idx
+    cdef int idx, i, cs_idx, leaving_cs_idx, smallest_df_cs_idx
     cdef double[::1] driving_forces = state.driving_forces()
     cdef double MIN_PHASE_AMOUNT = 1e-9
     cdef int MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD = 5
@@ -1200,18 +1229,6 @@ cdef bint change_phases(SystemSpecification spec, SystemState state):
     max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
     # We must obey the Gibbs phase rule
     if len(compsets_to_add) > 0:
-        if max_allowed_to_add < 1:
-            # We are at the maximum number of allowed phases, yet there is still positive driving force
-            # Destabilize one phase and add only one phase
-            possible_phases_to_destabilize = sorted(set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove)
-            # Destabilize the one that has been removed the least
-            least_removed_cs_idx = possible_phases_to_destabilize[0]
-            for i in range(1, len(possible_phases_to_destabilize)):
-                cs_idx = possible_phases_to_destabilize[i]
-                if state.times_compset_removed[cs_idx] < state.times_compset_removed[least_removed_cs_idx]:
-                    least_removed_cs_idx = cs_idx
-            compsets_to_remove.add(least_removed_cs_idx)
-            phase_amt[least_removed_cs_idx] = 0
         # Add the compset with least amount (but still positive) driving force
         possible_phases_to_add = sorted(compsets_to_add)
         smallest_df_cs_idx = possible_phases_to_add[0]
@@ -1220,6 +1237,12 @@ cdef bint change_phases(SystemSpecification spec, SystemState state):
             if driving_forces[cs_idx] < driving_forces[smallest_df_cs_idx]:
                 smallest_df_cs_idx = cs_idx
         compsets_to_add = {smallest_df_cs_idx}
+        if max_allowed_to_add < 1:
+            # We are at the maximum number of allowed phases, yet there is still positive driving force
+            possible_phases_to_destabilize = sorted(set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove)
+            leaving_cs_idx = ratio_test(spec, state, smallest_df_cs_idx, np.array(possible_phases_to_destabilize, dtype=np.int32))
+            compsets_to_remove.add(leaving_cs_idx)
+            phase_amt[leaving_cs_idx] = 0
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
                                                       ),
