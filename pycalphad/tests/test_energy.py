@@ -117,6 +117,17 @@ def test_degenerate_zero_ordering(load_database):
     assert abs(desired - 0) < 1e-5, "%r != %r" % (desired, 0)
 
 
+@select_database("alfe.tdb")
+def test_function_nested_in_parameter_is_extrapolated(load_database):
+    "Functions nested in a parameter extrapolate with it outside its temperature range (gh-772)."
+    dbf = load_database()
+    # G(HCP_A3,FE:VA;0) adds GHSERFE in both of its ranges, which also span 298.15-6000 K
+    mod = Model(dbf, ['FE', 'VA'], 'HCP_A3')
+    endmember = {v.SiteFraction('HCP_A3', 0, 'FE'): 1, v.SiteFraction('HCP_A3', 1, 'VA'): 1}
+    check_energy(mod, {v.T: 250, **endmember}, -2270.902)
+    check_energy(mod, {v.T: 6500, **endmember}, -674775.07)
+
+
 # BINARY TESTS
 @select_database("alcrni.tdb")
 def test_binary_magnetic(load_database):

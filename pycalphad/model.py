@@ -26,6 +26,20 @@ except ImportError:
 _MAX_PARAM_NESTING = 32
 
 
+def _innermost_first(expr, cls):
+    "Distinct subexpressions of expr of type cls, each listed after the ones it contains."
+    found, seen = [], set()
+    def visit(node):
+        seen.add(node)
+        for arg in node.args:
+            if arg not in seen:
+                visit(arg)
+        if isinstance(node, cls):
+            found.append(node)
+    visit(expr)
+    return found
+
+
 def _toop_filter(chemical_group_dict, symmetric_species, asymmetric_species):
     """
     Return a function ``f(m)`` that returns ``True`` if m is symmetric with
@@ -331,8 +345,9 @@ class Model(object):
     def unwrap_piecewise(cls, graph):
         from pycalphad.io.tdb import to_interval
         replace_dict = {}
-        for atom in graph.atoms(Piecewise):
-            args = atom.args
+        # Innermost first, so each piecewise is rebuilt from its already unwrapped arguments (gh-772)
+        for atom in _innermost_first(graph, Piecewise):
+            args = atom.xreplace(replace_dict).args
             # Unwrap temperature-dependent piecewise with zero-defaults
             if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
                 replace_dict[atom] = args[0]
