@@ -76,6 +76,16 @@ def test_property_units():
 def test_property_repr():
     repr(as_property(0.5*v.X('ZN') - 7*v.X('AL'))) == '0.5*X(ZN)-7*X(AL)'
 
+def test_property_repr_roundtrip():
+    "eval(repr(prop)) == prop for model properties and Jansson derivatives (gh-607)."
+    namespace = {'ModelComputedProperty': ModelComputedProperty, 'JanssonDerivative': JanssonDerivative, 'T': v.T}
+    assert repr(as_property('HM(LIQUID).T')['kJ/mol/K']) == \
+        "JanssonDerivative(ModelComputedProperty('HM', 'LIQUID'), T)['kJ/mol/K']"
+    for prop in [as_property('GM'), as_property('GM(FCC_A1#2)'), as_property('HM')['kJ/mol'],
+                 as_property('HM.T'), as_property('HM(LIQUID).T')['kJ/mol/K'],
+                 JanssonDerivative(as_property('HM')['kJ/mol'], v.T)]:
+        assert eval(repr(prop), namespace) == prop
+
 @select_database("alzn_mey.tdb")
 def test_cpf_phase_energy_curves(load_database):
     wks2 = Workspace(load_database(), ['AL', 'ZN'],
