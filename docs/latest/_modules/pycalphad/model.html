@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.12.1.dev3+g5a8ecd4f4 documentation</title>
+        <title>pycalphad.model - pycalphad 0.12.1.dev4+g3e96619c6 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.12.1.dev3+g5a8ecd4f4 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.12.1.dev4+g3e96619c6 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.12.1.dev3+g5a8ecd4f4 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.12.1.dev4+g3e96619c6 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -319,6 +319,20 @@
 <span class="c1"># Maximum number of levels deep we check for symbols that are functions of</span>
 <span class="c1"># other symbols</span>
 <span class="n">_MAX_PARAM_NESTING</span> <span class="o">=</span> <span class="mi">32</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_innermost_first</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+    <span class="s2">"Distinct subexpressions of expr of type cls, each listed after the ones it contains."</span>
+    <span class="n">found</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">visit</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="n">visit</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_toop_filter</span><span class="p">(</span><span class="n">chemical_group_dict</span><span class="p">,</span> <span class="n">symmetric_species</span><span class="p">,</span> <span class="n">asymmetric_species</span><span class="p">):</span>
@@ -636,8 +650,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">unwrap_piecewise</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.tdb</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_interval</span>
         <span class="n">replace_dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Piecewise</span><span class="p">):</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">args</span>
+        <span class="c1"># Innermost first, so each piecewise is rebuilt from its already unwrapped arguments (gh-772)</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">_innermost_first</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">replace_dict</span><span class="p">)</span><span class="o">.</span><span class="n">args</span>
             <span class="c1"># Unwrap temperature-dependent piecewise with zero-defaults</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}:</span>
                 <span class="n">replace_dict</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -694,8 +709,8 @@
             <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_MAX_PARAM_NESTING</span><span class="p">):</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">unwrap_piecewise</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="n">undefs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)]</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Symbols without a value, e.g. parameters kept symbolic, cannot be substituted by further passes</span>
+                <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">free_symbols</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">symbols</span><span class="p">):</span>
                     <span class="k">break</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="c1"># Can't use xreplace on a float</span>
@@ -2092,7 +2107,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=95745305"></script>
+</div><script src="../../_static/documentation_options.js?v=7bffc4e2"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
