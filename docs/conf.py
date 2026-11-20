@@ -1,11 +1,9 @@
 import sys
 import os
-import re
 
 # pycalphad must be importable to build API documentation and for version retrieval
 sys.path.insert(0, os.path.abspath('../pycalphad'))
 from pycalphad import __version__ as pycalphad_version
-pycalphad_version = re.sub(r'\.d[0-9]{8}', '', pycalphad_version)  # remove .d<date>
 
 # -- General configuration ------------------------------------------------
 
