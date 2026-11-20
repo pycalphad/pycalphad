@@ -4,6 +4,8 @@ Test variables module.
 import copy
 import pickle
 import numpy as np
+import pytest
+from symengine import ImmutableDenseMatrix
 from pycalphad import variables as v
 from pycalphad.tests.fixtures import select_database, load_database
 
@@ -145,3 +147,12 @@ def test_issue557_state_variable_unit_changes_survive_roundtrip_pickle():
     assert T2.display_units == T3.display_units
     assert pickle.loads(pickle.dumps(T2)) is T2_roundtrip
     assert v.T.display_units == original_units
+
+
+def test_state_variables_in_symengine_matrix():
+    "StateVariables are not iterable, so they can be SymEngine matrix entries (gh-547)."
+    # Checked first: if iter() succeeds, matrix construction loops forever
+    with pytest.raises(TypeError):
+        iter(v.T)
+    matrix = ImmutableDenseMatrix([v.T, v.X('A'), v.T['degC']])
+    assert list(matrix) == [v.T, v.X('A'), v.T]

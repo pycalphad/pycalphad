@@ -398,6 +398,8 @@ class StateVariable(Symbol):
         newobj.display_units = new_units
         return newobj
 
+    __iter__ = None  # gh-547
+
     def __copy__(self):
         """Create a shallow copy that bypasses the __new__ cache.
 
