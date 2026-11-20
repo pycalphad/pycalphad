@@ -753,8 +753,8 @@ class ModelMQMQA(Model):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
-                undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
-                if len(undefs) == 0:
+                # Symbols without a value, e.g. parameters kept symbolic, cannot be substituted by further passes
+                if obj.free_symbols.isdisjoint(symbols):
                     break
         except AttributeError:
             # Can't use xreplace on a float
