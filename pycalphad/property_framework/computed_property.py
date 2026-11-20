@@ -33,6 +33,13 @@ class ModelComputedProperty(object):
             result += f'({self.phase_name})'
         return result
 
+    def __repr__(self):
+        args = (self.model_attr_name,) if self.phase_name is None else (self.model_attr_name, self.phase_name)
+        result = f"{self.__class__.__name__}({', '.join(map(repr, args))})"
+        if self.display_units != self.__class__(*args).display_units:
+            result += f'[{self.display_units!r}]'
+        return result
+
     def __eq__(self, other):
         if self is other:
             return True
@@ -301,6 +308,12 @@ class JanssonDerivative:
 
     def __str__(self):
         return str(self.numerator)+'.'+str(self.denominator)
+
+    def __repr__(self):
+        result = f'{self.__class__.__name__}({self.numerator!r}, {self.denominator!r})'
+        if self._display_units is not None:
+            result += f'[{self._display_units!r}]'
+        return result
 
     def __eq__(self, other):
         if self is other:
