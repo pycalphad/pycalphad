@@ -31,7 +31,7 @@ jobs:
           path: coverage.xml
 
   Upload-Coverage:
-    if: github.repository == 'pycalphad/pycalphad'
+    if: ${{ !github.event.repository.fork }}
     runs-on: ubuntu-latest
     needs: [Tests]
     steps:
