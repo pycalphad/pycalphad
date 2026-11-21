@@ -1401,6 +1401,20 @@ def test_eq_mass_residual_rtol_not_too_tight(load_database):
     assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
 
 
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_phase_entering_at_phase_rule_limit_replaces_phase_by_mass_balance(load_database):
+    "A phase entering at the Gibbs phase rule limit replaces the stable phase the mass balance removes first."
+    dbf = load_database()
+    comps = ["AL", "CU", "MG", "SI", "ZN", "VA"]
+    phases = ["ALCU_ETA", "BCC_B2", "DIAMOND_A4", "FCC_A1", "LAVES_C14", "MG2SI", "MG2ZN11"]
+    conds = {v.N: 1, v.P: 101325, v.T: 550, v.X("CU"): 0.029, v.X("MG"): 0.063, v.X("SI"): 0.527, v.X("ZN"): 0.187}
+    # BCC_B2 enters with five phases stable; removing FCC_A1 instead of ALCU_ETA cascaded to a failed solve (NaN)
+    eq = equilibrium(dbf, comps, phases, conds)
+    assert set(eq.Phase.values.ravel()) - {""} == {"BCC_B2", "DIAMOND_A4", "FCC_A1", "MG2SI", "MG2ZN11"}
+    assert_allclose(eq.GM.values.squeeze(), -19922.228, atol=0.01)
+
+
 @select_database("halite_tivo.tdb")
 def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
     """A lone stable ionic compset driven to a tiny negative amount must not crash the minimizer.
