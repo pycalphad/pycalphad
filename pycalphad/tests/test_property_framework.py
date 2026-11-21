@@ -317,3 +317,12 @@ def test_jansson_derivative_of_composition_set_property():
                                L * (1 - 2 * x) * dx_dT, rtol=1e-8)
     wks = Workspace(Database(GAP_TDB), ['AL', 'ZN', 'VA'], ['FCC_A1'], {**conds, v.X('ZN'): x / 2})
     assert np.all(np.isnan(wks.get('X(FCC_A1#2,ZN).T', 'NP(FCC_A1#2).T', 'HM(FCC_A1#2).T')))
+
+
+@select_database("cumg.tdb")
+def test_isolated_phase_of_line_compound_away_from_its_composition(load_database):
+    "IsolatedPhase of a line compound that cannot satisfy composition conditions is NaN"
+    wks = Workspace(load_database(), ["CU", "MG", "VA"], ["CUMG2"], {v.N: 1, v.P: 101325, v.T: 600, v.X("MG"): 0.25})
+    compset = CompositionSet(wks.phase_record_factory["CUMG2"])
+    compset.update(np.array([1.0, 1.0]), 1.0, np.array([1.0, 101325.0, 600.0]))
+    assert np.all(np.isnan(wks.get(*[IsolatedPhase(compset, wks)(p) for p in ["GM(CUMG2)", "MU(MG)", "X(CUMG2,MG)"]])))
