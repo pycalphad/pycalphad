@@ -4,6 +4,7 @@ from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, JanssonDerivative, \
     ModelComputedProperty, T0, IsolatedPhase, DormantPhase, ReferenceState
+import pycalphad.property_framework.metaproperties as metaproperties
 import pycalphad.variables as v
 from pycalphad.tests.fixtures import select_database, load_database
 import pytest
@@ -122,6 +123,20 @@ def test_cpf_driving_force(load_database):
     result = wks3.get(liq_driving_force)
     np.testing.assert_almost_equal(np.nanmax(result), -610.932599, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result), -3903.295718, decimal=5)
+
+@select_database("alzn_mey.tdb")
+def test_dormant_phase_stops_iterating_when_converged(load_database, monkeypatch):
+    "DormantPhase stops iterating at convergence instead of always running max_iterations."
+    wks = Workspace(load_database(), ['AL', 'ZN'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    {v.X('ZN'): 0.3, v.T: 600, v.P: 101325, v.N: 1})
+    metastable_liq_wks = wks.copy()
+    metastable_liq_wks.phases = ['LIQUID']
+    liq_driving_force = DormantPhase('LIQUID', metastable_liq_wks).driving_force
+    steps = []
+    advance_state = metaproperties.advance_state
+    monkeypatch.setattr(metaproperties, 'advance_state', lambda *args: steps.append(args) or advance_state(*args))
+    wks.get(liq_driving_force)
+    assert 0 < len(steps) < DormantPhase.max_iterations
 
 @select_database("alzn_mey.tdb")
 def test_cpf_tzero(load_database):
