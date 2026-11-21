@@ -526,7 +526,6 @@ cdef class CompsetState:
     cdef double moles_normalization
     cdef double[::1] internal_cons
     cdef double[::1] moles_normalization_grad
-    cdef int[::1] fixed_phase_dof_indices
     cdef int[::1] ipiv
     cdef double[:, ::1] cons_jac_tmp
     cdef double[:, ::1] phase_local_jac_tmp
@@ -554,7 +553,6 @@ cdef class CompsetState:
         self.moles_normalization = 0.0
         self.internal_cons = np.zeros(compset.phase_record.num_internal_cons)
         self.moles_normalization_grad = np.zeros(spec.num_statevars+compset.phase_record.phase_dof)
-        self.fixed_phase_dof_indices = np.array([], dtype=np.int32)
         self.ipiv = np.empty(self.phase_matrix.shape[0], dtype=np.int32)
         self.delta_y = np.zeros(compset.phase_record.phase_dof)
         self.cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons, spec.num_statevars + compset.phase_record.phase_dof))
@@ -567,11 +565,11 @@ cdef class CompsetState:
                 np.array(self.phase_matrix), np.array(self.full_e_matrix),
                 np.array(self.masses), np.array(self.mass_jac), np.array(self.c_G), np.array(self.c_statevars),
                 np.array(self.c_component), self.moles_normalization, np.array(self.internal_cons), np.array(self.moles_normalization_grad),
-                np.array(self.fixed_phase_dof_indices, dtype=np.int32), np.array(self.ipiv, dtype=np.int32))
+                np.array(self.ipiv, dtype=np.int32))
     def __setstate__(self, state):
         (self.trial_x_tmp, self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
          self.masses, self.mass_jac, self.c_G, self.c_statevars,
-         self.c_component, self.moles_normalization, self.internal_cons, self.moles_normalization_grad, self.fixed_phase_dof_indices,
+         self.c_component, self.moles_normalization, self.internal_cons, self.moles_normalization_grad,
          self.ipiv) = state
 
 
@@ -605,7 +603,6 @@ cdef class SystemState:
         self.chemical_potentials = np.zeros(spec.num_components)
         self.previous_chemical_potentials = np.zeros(spec.num_components)
         self.largest_chemical_potential_difference = -np.inf
-        self.delta_ms = np.zeros((len(compsets), spec.num_components))
         self.delta_statevars = np.zeros(spec.num_statevars)
         self.phase_compositions = np.zeros((len(compsets), spec.num_components))
         self.free_stable_compset_indices = np.array(np.nonzero([((compset.fixed==False) and (compset.NP>0))
@@ -636,14 +633,14 @@ cdef class SystemState:
         return (self.compsets, self.cs_states, np.asarray(self.dof), self.iteration, self.iterations_since_last_phase_change,
                 self.metastable_phase_iterations, self.times_compset_removed,
                 np.array(self.phase_amt), np.array(self.chemical_potentials), np.array(self.previous_chemical_potentials),
-                np.array(self.delta_ms), np.array(self.phase_compositions), self.largest_chemical_potential_difference,
+                np.array(self.phase_compositions), self.largest_chemical_potential_difference,
                 self.largest_statevar_change[0], self.largest_phase_amt_change[0], self.largest_y_change[0],
                 np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions))
     def __setstate__(self, state):
         (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
          self.metastable_phase_iterations, self.times_compset_removed,
          self.phase_amt, self.chemical_potentials, self.previous_chemical_potentials,
-         self.delta_ms, self.phase_compositions, self.largest_chemical_potential_difference, self.largest_statevar_change[0],
+         self.phase_compositions, self.largest_chemical_potential_difference, self.largest_statevar_change[0],
          self.largest_phase_amt_change[0], self.largest_y_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
         self._compset_removal_flags = np.zeros(len(self.compsets), dtype=np.int32)
 
@@ -654,10 +651,8 @@ cdef class SystemState:
         cdef CompsetState csst
         cdef double[::1] x
         cdef int idx, comp_idx, cons_idx, i, j, stable_idx, fixed_idx, num_phase_dof
-        cdef double mu_c_sum
         cdef double phase_comp_sum
         self.mole_fractions[:] = 0
-        self.delta_ms[:, :] = 0
         self.system_amount = 0
         # Compute normalized global quantities
         for idx in range(len(self.compsets)):
@@ -722,12 +717,6 @@ cdef class SystemState:
                 for i in range(num_phase_dof):
                     for j in range(num_phase_dof):
                         csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, spec.num_statevars + j] * csst.full_e_matrix[i, j]
-            for comp_idx in range(num_components):
-                for i in range(num_phase_dof):
-                    mu_c_sum = 0
-                    for j in range(self.chemical_potentials.shape[0]):
-                        mu_c_sum += csst.c_component[j, i] * self.chemical_potentials[j]
-                    self.delta_ms[idx, comp_idx] += csst.mass_jac[comp_idx, spec.num_statevars + i] * (mu_c_sum + csst.c_G[i])
             for comp_idx in range(num_components):
                 csst.moles_normalization += csst.masses[comp_idx, 0]
                 for i in range(num_phase_dof+spec.num_statevars):
