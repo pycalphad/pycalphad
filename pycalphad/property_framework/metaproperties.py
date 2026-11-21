@@ -158,7 +158,7 @@ class DormantPhase:
                 spec = self.solver.get_system_spec([self._compset], conditions)
                 state = spec.get_new_state([self._compset])
                 state.chemical_potentials[:] = chemical_potentials
-                state.recompute(spec)
+                state.recompute(spec, correct_inertia=True)
                 converged = False
                 for iteration in range(self.max_iterations):
                     state.iteration = iteration
@@ -167,7 +167,7 @@ class DormantPhase:
                     if converged:
                         break
                     advance_state(spec, state, np.atleast_1d(0.0), 1.0)
-                    state.recompute(spec)
+                    state.recompute(spec, correct_inertia=True)
                 self._compset = state.compsets[0]
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
             __str__ = lambda _: f'{prop.__str__()} [Dormant({self._compset.phase_record.phase_name if self._compset is not None else None})]'

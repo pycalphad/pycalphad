@@ -1452,3 +1452,15 @@ def test_eq_more_than_25_unknowns():
     eq = equilibrium(dbf, comps, list(dbf.phases), conds)
     assert_allclose(eq.NP.values.squeeze()[:13], 1/13)
     assert_allclose(eq.MU.values.squeeze(), -1000*np.arange(1, 14))
+
+
+@pytest.mark.solver
+@select_database("alcocrni.tdb")
+def test_eq_l12_fcc_gamma_and_gamma_prime_issue746(load_database):
+    "Al-Cr-Ni L12_FCC at 1273 K: disordered gamma + ordered gamma prime, not a partially ordered single phase (gh-746)."
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'CR', 'NI', 'VA'], ['L12_FCC'],
+                     {v.T: 1273, v.P: 101325, v.N: 1, v.X('AL'): 0.155, v.X('CR'): 0.155})
+    # GM from a sampling density of 5000 points per phase
+    assert_allclose(eq.GM.values.squeeze(), -87529.119, atol=0.01)
+    assert sum(phase == 'L12_FCC' for phase in eq.Phase.values.squeeze()) == 2

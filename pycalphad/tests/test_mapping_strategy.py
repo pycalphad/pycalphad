@@ -1141,7 +1141,6 @@ def test_ordered_configuration_of_stable_composition_set_ends_zpf_line(load_data
     invariant_T = [float(np.ravel(inv.data[0].y)[0]) for inv in strategy.get_invariant_data(v.X("CU"), v.T)]
     assert any(abs(T - 524.7) < 0.5 for T in invariant_T), f"No invariant at 524.7 K, got {invariant_T}"
 
-@pytest.mark.xfail(strict=True, reason="The solver leaves L12 of the starting point on a saddle point (gh-746)")
 @select_database("alnipt.tdb")
 def test_zpf_line_from_saddle_point_configuration_reaches_invariant(load_database):
     """
