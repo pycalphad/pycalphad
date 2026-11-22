@@ -162,6 +162,7 @@ class DormantPhase:
                 converged = False
                 for iteration in range(self.max_iterations):
                     state.iteration = iteration
+                    state.iterations_since_last_phase_change = iteration
                     converged = spec.check_convergence(state)
                     if converged:
                         break
