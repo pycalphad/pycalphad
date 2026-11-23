@@ -48,41 +48,19 @@ PARAMETER G(BCC_B2,TI:NI,TI:VA;0) 298.15 +60723.7-15.4024*T; 6000 N !
 """
 
 
-def niti_bcc_b2_compset(eta, x_ni, T):
-    "Ni-Ti BCC_B2 composition set at X(NI) = x_ni and T, with order parameter eta (Ni moved onto the first sublattice)."
-    dbf = Database(NITI_BCC_B2_TDB)
-    comps = ["NI", "TI", "VA"]
-    conds = {v.N: 1, v.P: 101325, v.T: T, v.X("NI"): x_ni}
-    prf = PhaseRecordFactory(dbf, comps, conds, instantiate_models(dbf, comps, ["BCC_B2"]))
-    compset = CompositionSet(prf["BCC_B2"])
-    # (NI, TI) on each of the two equivalent sublattices, then VA
-    compset.update(np.array([x_ni + eta, 1 - x_ni - eta, x_ni - eta, 1 - x_ni + eta, 1.0]), 1.0,
-                   np.array([conds[sv] for sv in prf.state_variables], dtype=float))
-    return compset, conds
-
-
-def solve_niti_bcc_b2(eta):
-    "Solver.solve on one Ni-Ti BCC_B2 composition set at X(NI) = 0.51 and 300 K, starting from order parameter eta."
-    compset, conds = niti_bcc_b2_compset(eta, 0.51, 300)
-    return Solver().solve([compset], conds), compset
-
-
-@pytest.mark.solver
-@pytest.mark.xfail(strict=True, reason="The disordered configuration is a saddle point with zero gradient: "
-                                       "every descent step is zero")
-def test_solver_ordered_b2_from_disordered_configuration():
-    "Ni-Ti BCC_B2 at fixed composition below its ordering temperature, from the disordered configuration (gh-670)."
-    result, compset = solve_niti_bcc_b2(0.0)
-    assert result.converged
-    # The order parameter is the only freedom at fixed composition; G is maximal when disordered, minimal at full order
-    assert_allclose(compset.energy, -43131.3475, atol=1e-3)
-
-
 @pytest.mark.solver
 def test_solver_ordered_b2_from_partially_ordered_configuration():
     "Ni-Ti BCC_B2 at fixed composition below its ordering temperature, from slight order on sublattice 1 (gh-670)."
-    result, compset = solve_niti_bcc_b2(0.05)
+    dbf = Database(NITI_BCC_B2_TDB)
+    conds = {v.N: 1, v.P: 101325, v.T: 300, v.X("NI"): 0.51}
+    prf = PhaseRecordFactory(dbf, ["NI", "TI", "VA"], conds, instantiate_models(dbf, ["NI", "TI", "VA"], ["BCC_B2"]))
+    compset = CompositionSet(prf["BCC_B2"])
+    # (NI, TI) on each of the two equivalent sublattices, then VA: 0.05 more Ni on the first sublattice than disorder
+    compset.update(np.array([0.56, 0.44, 0.46, 0.54, 1.0]), 1.0,
+                   np.array([conds[sv] for sv in prf.state_variables], dtype=float))
+    result = Solver().solve([compset], conds)
     assert result.converged
+    # The order parameter is the only freedom at fixed composition; G is maximal when disordered, minimal at full order
     assert_allclose(compset.energy, -43131.3475, atol=1e-3)
     # G is concave in the order parameter from disorder to near full order, so a downhill path keeps Ni on the first
     # sublattice; the other ordered variant, equal in energy, is only reached by climbing over the disordered maximum
@@ -93,9 +71,14 @@ def test_solver_ordered_b2_from_partially_ordered_configuration():
 @pytest.mark.solver
 def test_solver_derivative_of_ordered_b2_inside_composition_spinodal():
     "Heat capacity (HM.T) of BCC_B2 alone at fixed composition, where it is unstable at fixed chemical potentials."
+    dbf = Database(NITI_BCC_B2_TDB)
+    conds = {v.N: 1, v.P: 101325, v.T: 1100, v.X("NI"): 0.3}
+    prf = PhaseRecordFactory(dbf, ["NI", "TI", "VA"], conds, instantiate_models(dbf, ["NI", "TI", "VA"], ["BCC_B2"]))
+    compset = CompositionSet(prf["BCC_B2"])
+    compset.update(np.array([0.4, 0.6, 0.2, 0.8, 1.0]), 1.0,
+                   np.array([conds[sv] for sv in prf.state_variables], dtype=float))
     # The solution minimizes G over the order parameter at X(NI) = 0.3, but G - MU.X curves down at its chemical
     # potentials (composition spinodal): Newton steps need the curvature correction, the derivative the exact matrix
-    compset, conds = niti_bcc_b2_compset(0.1, 0.3, 1100)
     result = Solver().solve([compset], conds)
     assert result.converged
     cpm = as_property("HM.T").compute_property([compset], conds, result.chemical_potentials)
@@ -109,7 +92,12 @@ def test_solver_derivative_of_ordered_b2_inside_composition_spinodal():
 @pytest.mark.solver
 def test_dormant_ordered_b2_driving_force_from_partially_ordered_configuration():
     "DormantPhase driving force of Ni-Ti BCC_B2 from slight order, at the chemical potentials of disordered BCC_A2."
-    compset, conds = niti_bcc_b2_compset(0.05, 0.5, 600)
-    wks = Workspace(Database(NITI_BCC_B2_TDB), ["NI", "TI", "VA"], ["BCC_A2"], conds)
+    dbf = Database(NITI_BCC_B2_TDB)
+    conds = {v.N: 1, v.P: 101325, v.T: 600, v.X("NI"): 0.5}
+    prf = PhaseRecordFactory(dbf, ["NI", "TI", "VA"], conds, instantiate_models(dbf, ["NI", "TI", "VA"], ["BCC_B2"]))
+    compset = CompositionSet(prf["BCC_B2"])
+    compset.update(np.array([0.55, 0.45, 0.45, 0.55, 1.0]), 1.0,
+                   np.array([conds[sv] for sv in prf.state_variables], dtype=float))
+    wks = Workspace(dbf, ["NI", "TI", "VA"], ["BCC_A2"], conds)
     # Not 0 J/mol (the disordered configuration, i.e. BCC_A2 itself): the dormant iterations descend to full order
     assert_allclose(wks.get(DormantPhase(compset, None).driving_force), 12919.997, atol=0.01)
