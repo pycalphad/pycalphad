@@ -1182,8 +1182,7 @@ cdef int ratio_test(SystemSpecification spec, SystemState state, int entering_cs
         coefs[i] = state.phase_compositions[entering_cs_idx, comp_idx]
         for j in range(num_stable):
             stable_compositions[i, j] = state.phase_compositions[stable_cs_indices[j], comp_idx]
-    lstsq(&stable_compositions[0, 0], num_free_components, num_stable, &coefs[0],
-          max(num_free_components, num_stable) * DBL_EPSILON)
+    lstsq(&stable_compositions[0, 0], num_free_components, num_stable, &coefs[0], max(num_free_components, num_stable) * DBL_EPSILON)
     for j in range(num_stable):
         if coefs[j] > 0 and state.phase_amt[stable_cs_indices[j]] / coefs[j] < smallest_ratio:
             smallest_ratio = state.phase_amt[stable_cs_indices[j]] / coefs[j]
