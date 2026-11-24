@@ -1356,6 +1356,7 @@ def test_eq_underdetermined_multicomponent_condition_row(load_database):
 
 
 @pytest.mark.solver
+# HCP_A3 is not in the starting point (best grid driving force -1211 J/mol, below the -1000 cutoff), so BCC_B2 is found instead
 @pytest.mark.xfail(reason="Point at the pathology boundary: lands in the wrong basin or NaN depending on platform/toolchain.")
 @select_database("COST507.tdb")
 def test_eq_mass_residual_rtol_not_too_loose(load_database):
