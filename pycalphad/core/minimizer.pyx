@@ -1169,12 +1169,7 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
     return phases_changed
 
 cdef int ratio_test(SystemSpecification spec, SystemState state, int entering_cs_idx, int[::1] stable_cs_indices):
-    "Stable composition set that the entering composition set replaces with no phase amount becoming negative."
-    # hyperplane() replaces each vertex of the simplex in turn and keeps the trial simplex with the largest smallest
-    # fraction. One solve gives the same choice: write the entering composition as a combination of the stable
-    # compositions (coefs, over the mass-balanced components). With phase amounts n, replacing stable set k gives the
-    # entering set n_k / coefs[k] and each other set j n_j - coefs[j] * n_k / coefs[k], which are all nonnegative for
-    # the smallest n_k / coefs[k] with coefs[k] > 0.
+    "Return the index of the stable composition set to replace with the entering composition set by the simplex ratio test."
     cdef int num_free_components = spec.free_chemical_potential_indices.shape[0]
     cdef int num_stable = stable_cs_indices.shape[0]
     cdef double[::1, :] stable_compositions = np.empty((num_free_components, num_stable), order='F')
