@@ -122,12 +122,12 @@ cdef void reflect_negative_curvature(double* matrix, int n, int m) noexcept nogi
 
 @cython.boundscheck(False)
 cdef void invert_phase_matrix(double[:, ::1] inverse, double[:, ::1] phase_matrix, double[::1] site_fractions,
-                              int* ipiv, bint correct_inertia) noexcept nogil:
+                              int* ipiv, bint curvature_correction) noexcept nogil:
     """
     Inverse of the phase matrix K = [[H, J^T], [J, 0]] from its symmetric indefinite (Bunch-Kaufman) factorization,
     with K scaled by diag(sqrt(y), 1) so that every constituent has its O(RT) ideal-mixing curvature.
 
-    With correct_inertia, Newton steps from the inverse descend at fixed chemical potentials: H must be positive
+    With curvature_correction, Newton steps from the inverse descend at fixed chemical potentials: H must be positive
     definite on the null space of J, which holds iff K has as many negative eigenvalues as J has rows (Sylvester).
     Where it has more, the negative curvature is reflected (reflect_negative_curvature) before inverting.
     """
@@ -156,7 +156,7 @@ cdef void invert_phase_matrix(double[:, ::1] inverse, double[:, ::1] phase_matri
             factor[i * N + j] = scale[i] * phase_matrix[i, j] * scale[j]
     cython_lapack.dsytrf(&uplo, &N, factor, &N, ipiv, work, &lwork, &info)
     # Constraints that fix the configuration (num_dof <= num_cons) leave no direction to correct
-    if correct_inertia and num_dof > num_cons and info == 0 and \
+    if curvature_correction and num_dof > num_cons and info == 0 and \
             num_negative_eigenvalues(factor, ipiv, N) > num_cons:
         for i in range(N):
             for j in range(N):
@@ -751,10 +751,11 @@ cdef class SystemState:
         self._compset_removal_flags = np.zeros(len(self.compsets), dtype=np.int32)
 
     @cython.boundscheck(False)
-    cpdef void recompute(self, SystemSpecification spec, bint correct_inertia=False):
+    cpdef void recompute(self, SystemSpecification spec, bint curvature_correction=False):
         """
         Compute each composition set's energy, derivatives and inverse phase matrix at the current state. Newton steps
-        need correct_inertia (steps descend, see invert_phase_matrix); derivatives at a solution need the exact inverse.
+        need curvature_correction (steps descend, see invert_phase_matrix); derivatives at a solution need the exact
+        inverse.
         """
         cdef int num_components = spec.num_components
         cdef CompositionSet compset
@@ -805,7 +806,7 @@ cdef class SystemState:
 
             compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.phase_local_jac_tmp, csst.mass_hess_tmp, compset, spec.num_statevars, self.chemical_potentials, x)
             invert_phase_matrix(csst.full_e_matrix, csst.phase_matrix, x[spec.num_statevars:], &csst.ipiv[0],
-                                correct_inertia)
+                                curvature_correction)
 
             num_phase_dof = compset.phase_record.phase_dof
             csst.c_G[:] = 0
@@ -1046,7 +1047,7 @@ cpdef double[::1] solve_state(SystemSpecification spec, SystemState state):
     cdef CompsetState csst
 
     state.previous_chemical_potentials[:] = state.chemical_potentials[:]
-    state.recompute(spec, correct_inertia=True)
+    state.recompute(spec, curvature_correction=True)
 
     if spec.debugging_output:
         for i in range(state.free_stable_compset_indices.shape[0]):
