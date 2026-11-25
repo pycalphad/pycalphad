@@ -71,10 +71,13 @@ cdef int num_negative_eigenvalues(double* factor, int* ipiv, int N) noexcept nog
 cdef void reflect_negative_curvature(double* matrix, int n, int m) noexcept nogil:
     """
     In the phase matrix [[H, J^T], [J, 0]] (n + m square, C order), replace each negative eigenvalue lambda of the
-    reduced Hessian Z^T H Z by max(|lambda|, 1 J/mol), so that Newton steps go down along its eigenvector as far as they
-    would have gone up. Z is an orthonormal basis of the null space of J (from the QR factorization of J^T). Directions
-    of positive curvature are unchanged.
+    reduced Hessian Z^T H Z by max(|lambda|, MIN_CURVATURE), so that Newton steps go down along its eigenvector as far
+    as they would have gone up. Z is an orthonormal basis of the null space of J (from the QR factorization of J^T).
+    Directions of positive curvature are unchanged.
     """
+    # J/mol in sqrt(y)-scaled site fractions, where ideal mixing gives RT: keeps a nearly flat direction from becoming a
+    # nearly singular one
+    cdef double MIN_CURVATURE = 1.0
     cdef int N = n + m
     cdef int r = n - m
     cdef int lwork = 64 * N
@@ -116,7 +119,7 @@ cdef void reflect_negative_curvature(double* matrix, int n, int m) noexcept nogi
                 z[a] += Q[(m + l) * n + a] * reduced[k * r + l]
         for a in range(n):
             for b in range(n):
-                matrix[a * N + b] += (fmax(fabs(eigenvalues[k]), 1.0) - eigenvalues[k]) * z[a] * z[b]
+                matrix[a * N + b] += (fmax(fabs(eigenvalues[k]), MIN_CURVATURE) - eigenvalues[k]) * z[a] * z[b]
         k += 1
     free(Q)
 
@@ -128,8 +131,9 @@ cdef void invert_phase_matrix(double[:, ::1] inverse, double[:, ::1] phase_matri
     with K scaled by diag(sqrt(y), 1) so that every constituent has its O(RT) ideal-mixing curvature.
 
     With curvature_correction, Newton steps from the inverse descend at fixed chemical potentials: H must be positive
-    definite on the null space of J, which holds iff K has as many negative eigenvalues as J has rows (Sylvester).
-    Where it has more, the negative curvature is reflected (reflect_negative_curvature) before inverting.
+    definite on the null space of J, which holds iff K has as many negative eigenvalues as J has rows (Sylvester; J has
+    full row rank). Where it has more, the negative curvature is reflected (reflect_negative_curvature) before
+    inverting.
     """
     cdef int N = phase_matrix.shape[0]
     cdef int num_dof = site_fractions.shape[0]
@@ -174,7 +178,8 @@ cdef void invert_phase_matrix(double[:, ::1] inverse, double[:, ::1] phase_matri
         for j in range(N):
             inverse[i, j] *= scale[i] * scale[j]
     if num_dof <= num_cons:
-        # Constraints that fix the configuration: no response to chemical potentials or state variables
+        # Constraints that fix the configuration: the response to chemical potentials and state variables is exactly
+        # zero, where the solve leaves roundoff
         inverse[:num_dof, :num_dof] = 0
     if info != 0:
         inverse[:, :] = -1e19

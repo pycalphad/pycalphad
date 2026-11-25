@@ -11,6 +11,7 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
+from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
 import pycalphad.variables as v
@@ -1467,6 +1468,21 @@ def test_eq_l12_fcc_gamma_and_gamma_prime_issue746(load_database):
 
 
 @pytest.mark.solver
+@select_database("NiTi-22Sun.tdb")
+def test_solver_ordered_b2_from_partially_ordered_configuration(load_database):
+    "Ni-Ti BCC_B2 at fixed composition below its ordering temperature, from slight order on sublattice 1 (gh-670)."
+    dbf = load_database()
+    conds = {v.N: 1, v.P: 101325, v.T: 300, v.X("NI"): 0.51}
+    prf = PhaseRecordFactory(dbf, ["NI", "TI", "VA"], conds, instantiate_models(dbf, ["NI", "TI", "VA"], ["BCC_B2"]))
+    compset = CompositionSet(prf["BCC_B2"])
+    # (NI, TI) on each of the two equivalent sublattices, then VA: 0.05 more Ni on the first sublattice than disorder
+    compset.update(np.array([0.56, 0.44, 0.46, 0.54, 1.0]), 1.0, np.array([1.0, 101325.0, 300.0]))
+    assert Solver().solve([compset], conds).converged
+    # The order parameter is the only freedom at fixed composition; G is maximal when disordered, minimal at full order
+    assert_allclose(compset.energy, -43131.3475, atol=1e-3)
+
+
+@pytest.mark.solver
 @pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
 @select_database("Al-Fe-O_Lindwall2015.tdb")
 def test_eq_metastable_composition_set_at_bound_does_not_stall_stable_ones(load_database):
@@ -1474,5 +1490,6 @@ def test_eq_metastable_composition_set_at_bound_does_not_stall_stable_ones(load_
     dbf = load_database()
     eq = equilibrium(dbf, ['AL', 'FE', 'O', 'VA'], ['GAS', 'IONIC_LIQ'],
                      {v.N: 1, v.P: 101325, v.T: 2400, v.X('AL'): 0.2, v.X('O'): 0.6})
+    # Same GM and phases as with all Al-Fe-O phases
     assert_allclose(eq.GM.values.squeeze(), -366417.873, atol=0.01)
     assert set(eq.Phase.values.ravel()) - {''} == {'GAS', 'IONIC_LIQ'}

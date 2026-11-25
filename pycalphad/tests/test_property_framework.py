@@ -138,6 +138,18 @@ def test_dormant_phase_stops_iterating_when_converged(load_database, monkeypatch
     wks.get(liq_driving_force)
     assert 0 < len(steps) < DormantPhase.max_iterations
 
+@select_database("NiTi-22Sun.tdb")
+def test_dormant_phase_driving_force_from_partially_ordered_configuration(load_database):
+    "DormantPhase of BCC_B2 from slight order, at the chemical potentials of disordered BCC_A2, descends to full order."
+    dbf = load_database()
+    conds = {v.N: 1, v.P: 101325, v.T: 600, v.X('NI'): 0.5}
+    compset = CompositionSet(Workspace(dbf, ['NI', 'TI', 'VA'], ['BCC_B2'], conds).phase_record_factory['BCC_B2'])
+    # (NI, TI) on each of the two equivalent sublattices, then VA: 0.05 more Ni on the first sublattice than disorder
+    compset.update(np.array([0.55, 0.45, 0.45, 0.55, 1.0]), 1.0, np.array([1.0, 101325.0, 600.0]))
+    wks = Workspace(dbf, ['NI', 'TI', 'VA'], ['BCC_A2'], conds)
+    # Not 0 J/mol, the driving force of the disordered configuration (BCC_A2 itself)
+    np.testing.assert_allclose(wks.get(DormantPhase(compset, None).driving_force), 12919.997, atol=0.01)
+
 @select_database("alzn_mey.tdb")
 def test_cpf_tzero(load_database):
     wks4 = Workspace(load_database(), ['AL', 'ZN'],
@@ -341,3 +353,15 @@ def test_isolated_phase_of_line_compound_away_from_its_composition(load_database
     compset = CompositionSet(wks.phase_record_factory["CUMG2"])
     compset.update(np.array([1.0, 1.0]), 1.0, np.array([1.0, 101325.0, 600.0]))
     assert np.all(np.isnan(wks.get(*[IsolatedPhase(compset, wks)(p) for p in ["GM(CUMG2)", "MU(MG)", "X(CUMG2,MG)"]])))
+
+
+@select_database("NiTi-22Sun.tdb")
+def test_isolated_phase_heat_capacity_inside_composition_spinodal(load_database):
+    "IsolatedPhase HM.T of ordered BCC_B2 inside its composition spinodal equals the finite difference of HM."
+    wks = Workspace(load_database(), ['NI', 'TI', 'VA'], ['BCC_B2'],
+                    {v.N: 1, v.P: 101325, v.T: [1099.9, 1100, 1100.1], v.X('NI'): 0.3})
+    isolated_b2 = IsolatedPhase('BCC_B2', wks)
+    hm, cpm = np.ravel(wks.get(isolated_b2('HM'))), np.ravel(wks.get(isolated_b2('HM.T')))
+    # BCC_B2 curves down at fixed chemical potentials here: Newton steps need the curvature correction, derivatives the
+    # exact phase matrix
+    np.testing.assert_allclose(cpm[1], (hm[2] - hm[0]) / 0.2, rtol=1e-4)
