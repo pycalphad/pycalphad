@@ -82,4 +82,5 @@ jobs:
           AWS_ENDPOINT_URL: https://a996c2a49c08d820d67284c0378ab316.r2.cloudflarestorage.com
           AWS_DEFAULT_REGION: auto
           DEPLOY_NAME: ${{ github.event_name == 'release' && github.ref_name || 'latest' }}
-        run: aws s3 sync pycalphad-docs-html "s3://pycalphad-docs/docs/$DEPLOY_NAME/" --delete
+        # No --delete leaves orphaned pages, but prevents a sorting bug in R2 vs. S3 (gh-783)
+        run: aws s3 sync pycalphad-docs-html "s3://pycalphad-docs/docs/$DEPLOY_NAME/"
