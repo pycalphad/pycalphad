@@ -81,5 +81,10 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_ENDPOINT_URL: https://a996c2a49c08d820d67284c0378ab316.r2.cloudflarestorage.com
           AWS_DEFAULT_REGION: auto
-          DEPLOY_NAME: ${{ github.event_name == 'release' && github.ref_name || 'latest' }}
-        run: aws s3 sync pycalphad-docs-html "s3://pycalphad-docs/docs/$DEPLOY_NAME/" --delete
+          PREFIX: docs/${{ github.event_name == 'release' && github.ref_name || 'latest' }}/
+        # Not `aws s3 sync --delete`: R2 lists furo.css.map before furo.css, so sync deleted furo.css as it uploaded it
+        run: |
+          aws s3 cp pycalphad-docs-html "s3://pycalphad-docs/$PREFIX" --recursive
+          comm -13 <(cd pycalphad-docs-html && find . -type f | sed "s|^\./|$PREFIX|" | sort) \
+            <(aws s3api list-objects-v2 --bucket pycalphad-docs --prefix "$PREFIX" --query 'Contents[].Key' --output json | jq -r '.[]?' | sort) |
+            while read -r key; do aws s3 rm "s3://pycalphad-docs/$key"; done
