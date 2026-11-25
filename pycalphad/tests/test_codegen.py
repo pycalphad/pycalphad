@@ -109,3 +109,16 @@ def test_complex_numbers_generated_in_complicated_models_can_be_built(load_datab
 
     build_functions(mod.GM, mod_vars, include_obj=True, include_grad=True, include_hess=True)
     build_constraint_functions(mod_vars, int_cons)
+
+
+@select_database("alfe.tdb")
+def test_phase_record_hessian_is_symmetric(load_database):
+    """Gibbs energy Hessians are exactly symmetric."""
+    dbf = load_database()
+    comps = ['AL', 'FE', 'VA']
+    mod = Model(dbf, comps, 'B2_BCC')
+    prx = PhaseRecordFactory(dbf, comps, [v.N, v.P, v.T], {'B2_BCC': mod})['B2_BCC']
+    dof = np.array([1.0, 101325, 1000, 0.3, 0.7, 0.6, 0.4, 1.0])
+    hess = np.zeros((dof.size, dof.size))
+    prx.formulahess(hess, dof)
+    assert np.all(hess == hess.T)
