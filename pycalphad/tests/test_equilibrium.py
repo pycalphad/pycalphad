@@ -1464,3 +1464,15 @@ def test_eq_l12_fcc_gamma_and_gamma_prime_issue746(load_database):
     # GM from a sampling density of 5000 points per phase
     assert_allclose(eq.GM.values.squeeze(), -87529.119, atol=0.01)
     assert sum(phase == 'L12_FCC' for phase in eq.Phase.values.squeeze()) == 2
+
+
+@pytest.mark.solver
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
+def test_eq_metastable_composition_set_at_bound_does_not_stall_stable_ones(load_database):
+    "Al-Fe-O at 2400 K: a metastable IONIC_LIQ set at the site fraction bound does not stall the stable sets."
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'FE', 'O', 'VA'], ['GAS', 'IONIC_LIQ'],
+                     {v.N: 1, v.P: 101325, v.T: 2400, v.X('AL'): 0.2, v.X('O'): 0.6})
+    assert_allclose(eq.GM.values.squeeze(), -366417.873, atol=0.01)
+    assert set(eq.Phase.values.ravel()) - {''} == {'GAS', 'IONIC_LIQ'}

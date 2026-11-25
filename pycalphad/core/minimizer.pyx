@@ -616,7 +616,6 @@ cdef class SystemSpecification:
         return SystemState(self, compsets)
 
 cdef class CompsetState:
-    cdef double[::1] trial_x_tmp
     cdef double energy
     cdef double[::1] energy_view
     cdef double[::1] grad
@@ -641,7 +640,6 @@ cdef class CompsetState:
         self.energy_view = <double[:1]>&self.energy
 
     def __init__(self, SystemSpecification spec, CompositionSet compset):
-        self.trial_x_tmp = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
         self.energy = 0
         self.grad = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
         self.hess = np.zeros((spec.num_statevars + compset.phase_record.phase_dof,
@@ -667,13 +665,13 @@ cdef class CompsetState:
                                        spec.num_statevars + compset.phase_record.phase_dof))
 
     def __getstate__(self):
-        return (np.array(self.trial_x_tmp), self.energy, np.array(self.grad), np.array(self.hess),
+        return (self.energy, np.array(self.grad), np.array(self.hess),
                 np.array(self.phase_matrix), np.array(self.full_e_matrix),
                 np.array(self.masses), np.array(self.mass_jac), np.array(self.c_G), np.array(self.c_statevars),
                 np.array(self.c_component), self.moles_normalization, np.array(self.internal_cons), np.array(self.moles_normalization_grad),
                 np.array(self.ipiv, dtype=np.int32))
     def __setstate__(self, state):
-        (self.trial_x_tmp, self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
+        (self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
          self.masses, self.mass_jac, self.c_G, self.c_statevars,
          self.c_component, self.moles_normalization, self.internal_cons, self.moles_normalization_grad,
          self.ipiv) = state
@@ -1097,14 +1095,31 @@ cpdef double[::1] solve_state(SystemSpecification spec, SystemState state):
     return equilibrium_soln
 
 
+cdef double backtracked_step_size(double[::1] y, double[::1] delta_y, double step_size,
+                                  double min_site_fraction) noexcept nogil:
+    "Largest step_size / 2**k that keeps y + step_size * delta_y within the site fraction bounds, up to 1e-11."
+    cdef double minimum_step_size = 1e-20 * step_size
+    cdef int i
+    while step_size >= minimum_step_size:
+        for i in range(y.shape[0]):
+            if (y[i] + step_size * delta_y[i] - 1) > 1e-11 or \
+                    (min_site_fraction - y[i] - step_size * delta_y[i]) > 1e-11:
+                break
+        else:
+            return step_size
+        step_size *= 0.5
+    # No step keeps the bounds: the smallest one tried
+    return 2 * step_size
+
+
 # TODO: should we store equilibrium_soln in the state(?)
 cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equilibrium_soln, double step_size):
     # Apply linear corrections in phase amounts, state variables and site fractions
-    cdef bint exceeded_bounds
-    cdef double minimum_step_size, psc, phase_amt_step_size
+    cdef double psc, phase_amt_step_size, stable_step_size, compset_step_size, y_new
+    cdef bint stable
     cdef int i, idx, cons_idx, compset_idx, statevar_idx, chempot_idx
     cdef int soln_index_offset = spec.free_chemical_potential_indices.shape[0]  # Chemical potentials handled after solving
-    cdef double[::1] new_y, x
+    cdef double[::1] x
     cdef CompositionSet compset
     cdef CompsetState csst
 
@@ -1155,7 +1170,9 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
         # We need real state variable bounds support
 
     # 3. Step in phase internal degrees of freedom
-    state.largest_y_change[0] = 0.0
+    # The mass balance couples the stable and fixed composition sets, so they take one step size: the largest that keeps
+    # all of them within bounds. Metastable composition sets backtrack on their own.
+    stable_step_size = step_size
     for idx in range(len(state.compsets)):
         compset = state.compsets[idx]
         x = state.dof[idx, :compset.dof.shape[0]]
@@ -1173,33 +1190,29 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
             for cons_idx in range(csst.internal_cons.shape[0]):
                 csst.delta_y[i] -= csst.full_e_matrix[csst.delta_y.shape[0] + cons_idx, i] * csst.internal_cons[cons_idx]
 
-        new_y = csst.trial_x_tmp
-        new_y[:] = x
-        minimum_step_size = 1e-20 * step_size
-        while step_size >= minimum_step_size:
-            exceeded_bounds = False
-            for i in range(spec.num_statevars, new_y.shape[0]):
-                new_y[i] = x[i] + step_size * csst.delta_y[i - spec.num_statevars]
-                if new_y[i] > 1:
-                    if (new_y[i] - 1) > 1e-11:
-                        # Allow some tolerance in the name of progress
-                        exceeded_bounds = True
-                    new_y[i] = 1
-                elif new_y[i] < MIN_SITE_FRACTION:
-                    if (MIN_SITE_FRACTION - new_y[i]) > 1e-11:
-                        # Allow some tolerance in the name of progress
-                        exceeded_bounds = True
-                    # Reduce by two orders of magnitude, or MIN_SITE_FRACTION, whichever is larger
-                    new_y[i] = max(x[i]/100, MIN_SITE_FRACTION)
-            if exceeded_bounds:
-                step_size *= 0.5
-                continue
-            break
-        # Only allow stable or fixed phases can contribute to state.largest_y_change
         if (state.phase_amt[idx] > 0) or compset.fixed:
-            for i in range(spec.num_statevars, new_y.shape[0]):
-                state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - new_y[i]))
-        x[:] = new_y
+            stable_step_size = backtracked_step_size(x[spec.num_statevars:], csst.delta_y, stable_step_size,
+                                                     MIN_SITE_FRACTION)
+
+    state.largest_y_change[0] = 0.0
+    for idx in range(len(state.compsets)):
+        compset = state.compsets[idx]
+        x = state.dof[idx, :compset.dof.shape[0]]
+        csst = state.cs_states[idx]
+        stable = (state.phase_amt[idx] > 0) or compset.fixed
+        compset_step_size = stable_step_size if stable else \
+            backtracked_step_size(x[spec.num_statevars:], csst.delta_y, step_size, MIN_SITE_FRACTION)
+        for i in range(spec.num_statevars, x.shape[0]):
+            y_new = x[i] + compset_step_size * csst.delta_y[i - spec.num_statevars]
+            if y_new > 1:
+                y_new = 1
+            elif y_new < MIN_SITE_FRACTION:
+                # Reduce by two orders of magnitude, or MIN_SITE_FRACTION, whichever is larger
+                y_new = max(x[i]/100, MIN_SITE_FRACTION)
+            # Only stable or fixed phases contribute to state.largest_y_change
+            if stable:
+                state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - y_new))
+            x[i] = y_new
 
 
 cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState state):
