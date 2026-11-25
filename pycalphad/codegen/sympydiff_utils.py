@@ -52,6 +52,15 @@ def _get_lambidfy_options(user_options):
     return user_options
 
 
+def _hessian(grad_graphs, wrt):
+    "Symmetric Hessian from the gradient, differentiating only the upper triangle."
+    hess = [[None] * len(wrt) for _ in wrt]
+    for i, g in enumerate(grad_graphs):
+        for j in range(i, len(wrt)):
+            hess[i][j] = hess[j][i] = g.diff(wrt[j]).xreplace({zoo: oo})
+    return hess
+
+
 @lru_cache(maxsize=512)
 def build_functions(symengine_graph, variables, parameters=None, wrt=None,
                     include_obj=True, include_grad=False, include_hess=False,
@@ -133,8 +142,7 @@ def build_functions(symengine_graph, variables, parameters=None, wrt=None,
         if include_grad:
             grad = lambdify(inp, grad_graphs, **_get_lambidfy_options(grad_options))
         if include_hess:
-            hess_graphs = list(list(g.diff(w).xreplace({zoo: oo}) for w in wrt) for g in grad_graphs)
-            hess = lambdify(inp, hess_graphs, **_get_lambidfy_options(hess_options))
+            hess = lambdify(inp, _hessian(grad_graphs, wrt), **_get_lambidfy_options(hess_options))
     return BuildFunctionsResult(func=func, grad=grad, hess=hess)
 
 
@@ -188,6 +196,6 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     grad_graphs = list(list(c.diff(w).xreplace({zoo: oo}) for w in wrt) for c in graph)
     jacobian_func = lambdify(inp, grad_graphs, **_get_lambidfy_options(jac_options))
 
-    hess_graphs = list(list(list(g.diff(w).xreplace({zoo: oo}) for w in wrt) for g in c) for c in grad_graphs)
+    hess_graphs = [_hessian(c, wrt) for c in grad_graphs]
     hessian_func = lambdify(inp, hess_graphs, **_get_lambidfy_options(hess_options))
     return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
