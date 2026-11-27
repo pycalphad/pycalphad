@@ -649,10 +649,24 @@ class ModelMQMQA(Model):
                     Xi_jik = self._Xi_mix(dbe, B, A, X, X)
                     # Poschmann Eq. 24
                     mixing_term += Xi_ijk**p_alpha * Xi_jik**q_alpha / (Xi_ijk + Xi_jik)**(p_alpha + q_alpha)
+                elif mixing_code in ("B", "H"):
+                    # Bragg-Williams mixing (cations). Thermochimica's SUBG routine
+                    # (CompExcessGibbsEnergySUBG.f90:586) treats codes B and H identically and
+                    # builds the term from the zeta-weighted pair fractions X*_{i/k}:
+                    #   g_ex = L * X*_{A/X}^(1+p) * X*_{B/X}^(1+q) / (X*_{A/X} + X*_{B/X})^(1+p+q)
+                    X_AX = self._X_ik_star(A, X)
+                    X_BX = self._X_ik_star(B, X)
+                    mixing_term += X_AX**(1 + p_alpha) * X_BX**(1 + q_alpha) / (X_AX + X_BX)**(1 + p_alpha + q_alpha)
                 else:
                     raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
                 if m != v.Species(None):
-                    # Poschmann Eq. 25 and 26 ternary term (same for both mixing codes)
+                    if mixing_code in ("B", "H"):
+                        raise NotImplementedError(
+                            f"Ternary Bragg-Williams ({mixing_code}) terms with an additional mixing "
+                            f"constituent are not supported: Thermochimica's SUBG routine applies no "
+                            f"ternary factor to B/H and the form is unvalidated. Got parameter {param}."
+                        )
+                    # Poschmann Eq. 25 and 26 ternary term (same for G and Q mixing codes)
                     Xi_ijk = self._Xi_mix(dbe, A, B, X, X)
                     Xi_jik = self._Xi_mix(dbe, B, A, X, X)
                     Y_mk = self._Y_ik(m, X)
@@ -674,10 +688,24 @@ class ModelMQMQA(Model):
                     Xi_ilk = self._Xi_mix(dbe, A, A, Y, X)
                     # Poschmann Eq. 24
                     mixing_term += Xi_ikl**p_alpha * Xi_ilk**q_alpha / (Xi_ikl + Xi_ilk)**(p_alpha + q_alpha)
+                elif mixing_code in ("B", "H"):
+                    # Bragg-Williams mixing (anions). Thermochimica's SUBG routine
+                    # (CompExcessGibbsEnergySUBG.f90:586) treats codes B and H identically and
+                    # builds the term from the zeta-weighted pair fractions X*_{i/k}:
+                    #   g_ex = L * X*_{A/X}^(1+p) * X*_{A/Y}^(1+q) / (X*_{A/X} + X*_{A/Y})^(1+p+q)
+                    X_AX = self._X_ik_star(A, X)
+                    X_AY = self._X_ik_star(A, Y)
+                    mixing_term += X_AX**(1 + p_alpha) * X_AY**(1 + q_alpha) / (X_AX + X_AY)**(1 + p_alpha + q_alpha)
                 else:
                     raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
                 if m != v.Species(None):
-                    # Poschmann Eq. 25 and 26 ternary term (same for both mixing codes)
+                    if mixing_code in ("B", "H"):
+                        raise NotImplementedError(
+                            f"Ternary Bragg-Williams ({mixing_code}) terms with an additional mixing "
+                            f"constituent are not supported: Thermochimica's SUBG routine applies no "
+                            f"ternary factor to B/H and the form is unvalidated. Got parameter {param}."
+                        )
+                    # Poschmann Eq. 25 and 26 ternary term (same for G and Q mixing codes)
                     Xi_ikl = self._Xi_mix(dbe, A, A, X, Y)
                     Xi_ilk = self._Xi_mix(dbe, A, A, Y, X)
                     Y_im = self._Y_ik(A, m)
@@ -701,6 +729,19 @@ class ModelMQMQA(Model):
             else:
                 mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
             g = param["parameter"] * mixing_term
+
+            if mixing_code in ("B", "H"):
+                # Bragg-Williams (B/H) does NOT use the G/Q quadruplet wrapper below.
+                # Thermochimica distributes B/H through its own loop
+                # (CompExcessGibbsEnergySUBG.f90:591-631) and `cycle`s before the shared
+                # quadruplet accumulation. Summing n_l * mu_l^xs over that distribution
+                # (Euler's theorem) collapses exactly to dGex: the dDgexBase part sums to
+                # -dGex, the two (a,x)/(b,y) special terms sum to +dGex (the p,q parts
+                # cancel), and the remaining dGex*zeta*Nsij/4 term reduces via
+                # sum(nA*nX)=4 and sum(X_quad)=1 to dGex. So the whole contribution is g.
+                # Verified against a compiled-Thermochimica oracle.
+                energy += g
+                continue
 
             # Poschmann Eq. 17
             cation_factor = S.Zero

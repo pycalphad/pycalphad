@@ -1011,6 +1011,92 @@ def test_MQMQA_site_fraction_energy(load_database):
     assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.15384615384,1e-5)
 
 
+def _with_mixing_code(dbf, phase, constituents, code, new_constituents=None):
+    """Copy of ``dbf`` whose one MQMX parameter of ``phase`` on ``constituents`` (species
+    names per sublattice) takes mixing code ``code``, moved to ``new_constituents`` if given.
+
+    Builds the B/H variants of the test databases from the shipped files, so the test
+    suite carries no near-duplicate database copies.
+    """
+    import copy
+    from tinydb import where
+    dbf = copy.deepcopy(dbf)
+    species = {sp.name: sp for subl in dbf.phases[phase].constituents for sp in subl}
+    wanted = tuple(tuple(sorted(subl)) for subl in constituents)
+    rows = [row for row in dbf._parameters.search((where("phase_name") == phase) & (where("parameter_type") == "MQMX"))
+            if tuple(tuple(sorted(sp.name for sp in subl)) for subl in row["constituent_array"]) == wanted]
+    assert len(rows) == 1, f"{len(rows)} MQMX parameters of {phase} on {constituents}"
+    update = {"mixing_code": code}
+    if new_constituents is not None:
+        update["constituent_array"] = tuple(tuple(species[name] for name in subl) for subl in new_constituents)
+    dbf._parameters.update(update, doc_ids=[rows[0].doc_id])
+    return dbf
+
+
+_TERN_CU = v.Species("CU+2.0", constituents={"CU": 1.0}, charge=2)
+_TERN_NI = v.Species("NI+2.0", constituents={"NI": 1.0}, charge=2)
+_TERN_VA = v.Species("VA-1.0", constituents={"VA": 1.0}, charge=-1)
+
+
+def _tern_bragg_williams(dbf, code):
+    """L_SUBG_1 with its one excess parameter switched from code G to ``code``
+    (the line ``G 1 2 3 3 1 0 0 0`` becomes ``B 1 2 3 3 1 0 0 0``)."""
+    return _with_mixing_code(dbf, "L_SUBG_1", [["CU+2.0", "NI+2.0"], ["VA-1.0", "VA-1.0"]], code)
+
+
+def _tern_subs(mod):
+    # Thermochimica's equilibrium quadruplet fractions for the B case, from its JSON output
+    return {
+        mod._X_ijkl(_TERN_CU, _TERN_CU, _TERN_VA, _TERN_VA): 0.2500007039726085,
+        mod._X_ijkl(_TERN_NI, _TERN_NI, _TERN_VA, _TERN_VA): 0.2500007039726085,
+        mod._X_ijkl(_TERN_CU, _TERN_NI, _TERN_VA, _TERN_VA): 0.49999859205478303,
+        v.T: 1000.0,
+    }
+
+
+@select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_bragg_williams_cation_vs_thermochimica(load_database):
+    """Cation-mixing Bragg-Williams (code B) against Thermochimica (pycalphad#403).
+
+    Thermochimica (ORNL-CEES, commit 1c076b2) on the same edited database, phase L_SUBG_1
+    only, Cu0.5 Ni0.5 at 1000 K, gives the quadruplet fractions in ``_tern_subs`` and an
+    integral Gibbs energy of -2.4513056885567905E+04 J (its JSON output, 16 digits).
+    """
+    dbf = _tern_bragg_williams(load_database(), "B")
+    mod = ModelMQMQA(dbf, ["CU", "NI", "VA"], "L_SUBG_1")
+    check_energy(mod, _tern_subs(mod), -2.4513056885567905E+04, mode="sympy")  # Thermochimica result
+
+
+@select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_bragg_williams_H_same_as_B(load_database):
+    """Code H evaluates exactly as code B, as in Thermochimica's SUBG energy routine
+    (CompExcessGibbsEnergySUBG.f90). Thermochimica's DAT parser accepts only G, Q, R and B,
+    so H cannot be run in Thermochimica; this only pins H to the validated B."""
+    dbf = load_database()
+    mod_B = ModelMQMQA(_tern_bragg_williams(dbf, "B"), ["CU", "NI", "VA"], "L_SUBG_1")
+    mod_H = ModelMQMQA(_tern_bragg_williams(dbf, "H"), ["CU", "NI", "VA"], "L_SUBG_1")
+    check_energy(mod_H, _tern_subs(mod_H), float(mod_B.GM.subs(_tern_subs(mod_B))), mode="sympy")
+
+
+@select_database("Viitala.dat")
+def test_MQMQA_bragg_williams_ternary_not_implemented(load_database):
+    """A B/H parameter carrying an additional mixing constituent must raise:
+    Thermochimica applies no ternary factor to B/H, so the form is unvalidated."""
+    import copy
+    from tinydb import Query
+    dbf = copy.deepcopy(load_database())  # don't mutate the shared fixture database
+    CU2 = v.Species("CU+2.0", constituents={"CU": 1.0}, charge=2)
+    template = next(pr for pr in dbf._parameters.search(Query().parameter_type == "MQMX")
+                    if pr["constituent_array"][0][0] != pr["constituent_array"][0][1])
+    prm = dict(template)
+    prm.update(mixing_code="B", exponents=[0, 0, 0, 0],
+               additional_mixing_constituent=CU2, additional_mixing_exponent=1)
+    dbf._parameters.remove(Query().parameter_type == "MQMX")
+    dbf._parameters.insert(prm)
+    with pytest.raises(NotImplementedError):
+        ModelMQMQA(dbf, ["CU", "ZN", "FE", "CL"], "LIQUIDSOLN")
+
+
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
@@ -1055,6 +1141,49 @@ def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_bragg_williams_anion_vs_thermochimica(load_database):
+    """Anion-mixing Bragg-Williams (code B) against Thermochimica (pycalphad#403).
+
+    The database is the Shishin slag with one excess line changed to an anion-mixing B
+    parameter on (Fe3+,Fe3+)/(O,S): ``G 1 1 4 5`` becomes ``B 2 2 4 5``. Thermochimica
+    (ORNL-CEES, commit 1c076b2) on that database, phase Slag-liq only, Fe0.2 Sb0.2 O0.3 S0.3
+    at 1000 K, gives the quadruplet fractions below and an integral Gibbs energy of
+    -1.3163698288716606E+05 J (its JSON output, 16 digits).
+    """
+    dbf = _with_mixing_code(load_database(), "SLAG-LIQ", [["FE2++2.0", "FE2++2.0"], ["O-2.0", "S-2.0"]], "B",
+                            new_constituents=[["FE3++3.0", "FE3++3.0"], ["O-2.0", "S-2.0"]])
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
+    subs_dict = {  # Thermochimica equilibrium quadruplet fractions, from its JSON output
+        mod._X_ijkl(FE2, FE2, O, O): 9.862130066167917e-32,
+        mod._X_ijkl(FE3, FE3, O, O): 0.00463872780525549,
+        mod._X_ijkl(SB3, SB3, O, O): 0.279368421530169,
+        mod._X_ijkl(FE2, FE3, O, O): 1.6978198982183649e-16,
+        mod._X_ijkl(FE2, SB3, O, O): 3.736236234648817e-16,
+        mod._X_ijkl(FE3, SB3, O, O): 0.0719976163802612,
+        mod._X_ijkl(FE2, FE2, S, S): 2.157023828076003e-28,
+        mod._X_ijkl(FE3, FE3, S, S): 0.2793684218479012,
+        mod._X_ijkl(SB3, SB3, S, S): 0.004638727764310797,
+        mod._X_ijkl(FE2, FE3, S, S): 1.7473360480536556e-14,
+        mod._X_ijkl(FE2, SB3, S, S): 2.2515791697475933e-15,
+        mod._X_ijkl(FE3, SB3, S, S): 0.071997616103453,
+        mod._X_ijkl(FE2, FE2, O, S): 9.224499888516193e-30,
+        mod._X_ijkl(FE3, FE3, O, S): 0.07199761726289995,
+        mod._X_ijkl(SB3, SB3, O, S): 0.07199761762161153,
+        mod._X_ijkl(FE2, FE3, O, S): 3.44480010975491e-15,
+        mod._X_ijkl(FE2, SB3, O, S): 1.8343862118506193e-15,
+        mod._X_ijkl(FE3, SB3, O, S): 0.14399523368411227,
+        v.T: 1000.0,
+    }
+    check_energy(mod, subs_dict, -1.3163698288716606E+05, mode="sympy")  # Thermochimica result
+
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
