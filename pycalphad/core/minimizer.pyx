@@ -5,7 +5,7 @@ from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.constants import MIN_SITE_FRACTION
 cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
-from libc.math cimport isnan, INFINITY
+from libc.math cimport isnan, sqrt, fabs, fmax, INFINITY
 from libc.float cimport DBL_EPSILON
 
 @cython.boundscheck(False)
@@ -53,28 +53,137 @@ cpdef void lstsq_check_infeasible(double[:,::] A, double[::] b, double[::] out_x
         out_x[:] = np.nan
 
 @cython.boundscheck(False)
-cdef void invert_matrix(double *A, int N, int* ipiv) noexcept nogil:
-    "A will be overwritten."
+cdef int num_negative_eigenvalues(double* factor, int* ipiv, int N) noexcept nogil:
+    "Number of negative eigenvalues of a symmetric matrix, from the D of its Bunch-Kaufman factorization (dsytrf)."
+    cdef int i = 0
+    cdef int count = 0
+    while i < N:
+        if ipiv[i] > 0:
+            count += factor[i * N + i] < 0
+            i += 1
+        else:
+            # The pivoting makes every 2x2 block of D indefinite: one negative and one positive eigenvalue
+            count += 1
+            i += 2
+    return count
+
+@cython.boundscheck(False)
+cdef void reflect_negative_curvature(double* matrix, int n, int m) noexcept nogil:
+    """
+    In the phase matrix [[H, J^T], [J, 0]] (n + m square, C order), replace each negative eigenvalue lambda of the
+    reduced Hessian Z^T H Z by max(|lambda|, MIN_CURVATURE), so that Newton steps go down along its eigenvector as far
+    as they would have gone up. Z is an orthonormal basis of the null space of J (from the QR factorization of J^T).
+    Directions of positive curvature are unchanged.
+    """
+    # J/mol in sqrt(y)-scaled site fractions, where ideal mixing gives RT: keeps a nearly flat direction from becoming a
+    # nearly singular one
+    cdef double MIN_CURVATURE = 1.0
+    cdef int N = n + m
+    cdef int r = n - m
+    cdef int lwork = 64 * N
     cdef int info = 0
-    cdef int i
-    cdef double* work = <double*>malloc(N * sizeof(double))
-    cdef bint isfinite = True
+    cdef int a, b, k, l
+    cdef char jobz = b'V'
+    cdef char uplo = b'L'
+    # Fortran (column-major) arrays: column k of Q is Q[k * n : (k + 1) * n]
+    cdef double* Q = <double*>malloc((n * n + m + n * r + r * r + r + n + lwork) * sizeof(double))
+    cdef double* tau = Q + n * n
+    cdef double* HZ = tau + m
+    cdef double* reduced = HZ + n * r
+    cdef double* eigenvalues = reduced + r * r
+    cdef double* z = eigenvalues + r
+    cdef double* work = z + n
+    for k in range(m):
+        for a in range(n):
+            Q[k * n + a] = matrix[(n + k) * N + a]
+    cython_lapack.dgeqrf(&n, &m, Q, &n, tau, work, &lwork, &info)
+    cython_lapack.dorgqr(&n, &n, &m, Q, &n, tau, work, &lwork, &info)
+    # Z is columns m, ..., n - 1 of Q
+    for a in range(n):
+        for k in range(r):
+            HZ[k * n + a] = 0
+            for b in range(n):
+                HZ[k * n + a] += matrix[a * N + b] * Q[(m + k) * n + b]
+    for k in range(r):
+        for l in range(r):
+            reduced[k * r + l] = 0
+            for a in range(n):
+                reduced[k * r + l] += Q[(m + k) * n + a] * HZ[l * n + a]
+    cython_lapack.dsyev(&jobz, &uplo, &r, reduced, &r, eigenvalues, work, &lwork, &info)
+    # Eigenvalues ascend; eigenvector k is column k of reduced
+    k = 0
+    while info == 0 and k < r and eigenvalues[k] < 0:
+        for a in range(n):
+            z[a] = 0
+            for l in range(r):
+                z[a] += Q[(m + l) * n + a] * reduced[k * r + l]
+        for a in range(n):
+            for b in range(n):
+                matrix[a * N + b] += (fmax(fabs(eigenvalues[k]), MIN_CURVATURE) - eigenvalues[k]) * z[a] * z[b]
+        k += 1
+    free(Q)
 
-    for i in range(N**2):
-        if isnan(A[i]):
-            isfinite = False
+@cython.boundscheck(False)
+cdef void invert_phase_matrix(double[:, ::1] inverse, double[:, ::1] phase_matrix, double[::1] site_fractions,
+                              int* ipiv, bint curvature_correction) noexcept nogil:
+    """
+    Inverse of the phase matrix K = [[H, J^T], [J, 0]] from its symmetric indefinite (Bunch-Kaufman) factorization,
+    with K scaled by diag(sqrt(y), 1) so that every constituent has its O(RT) ideal-mixing curvature.
 
-    if not isfinite:
-        for i in range(N**2):
-            A[i] = 0
-    else:
-        cython_lapack.dgetrf(&N, &N, A, &N, ipiv, &info)
-        cython_lapack.dgetri(&N, A, &N, ipiv, work, &N, &info)
-
-    free(work)
+    With curvature_correction, Newton steps from the inverse descend at fixed chemical potentials: H must be positive
+    definite on the null space of J, which holds iff K has as many negative eigenvalues as J has rows (Sylvester; J has
+    full row rank). Where it has more, the negative curvature is reflected (reflect_negative_curvature) before
+    inverting.
+    """
+    cdef int N = phase_matrix.shape[0]
+    cdef int num_dof = site_fractions.shape[0]
+    cdef int num_cons = N - num_dof
+    cdef int lwork = 64 * N
+    cdef int info = 0
+    cdef int i, j
+    cdef char uplo = b'L'
+    cdef double* scale
+    cdef double* factor
+    cdef double* work
+    for i in range(N):
+        for j in range(N):
+            if isnan(phase_matrix[i, j]):
+                inverse[:, :] = 0
+                return
+    scale = <double*>malloc((N + N * N + lwork) * sizeof(double))
+    factor = scale + N
+    work = factor + N * N
+    for i in range(N):
+        scale[i] = sqrt(site_fractions[i]) if i < num_dof else 1.0
+    for i in range(N):
+        for j in range(N):
+            factor[i * N + j] = scale[i] * phase_matrix[i, j] * scale[j]
+    cython_lapack.dsytrf(&uplo, &N, factor, &N, ipiv, work, &lwork, &info)
+    # Constraints that fix the configuration (num_dof <= num_cons) leave no direction to correct
+    if curvature_correction and num_dof > num_cons and info == 0 and \
+            num_negative_eigenvalues(factor, ipiv, N) > num_cons:
+        for i in range(N):
+            for j in range(N):
+                factor[i * N + j] = scale[i] * phase_matrix[i, j] * scale[j]
+        reflect_negative_curvature(factor, num_dof, num_cons)
+        cython_lapack.dsytrf(&uplo, &N, factor, &N, ipiv, work, &lwork, &info)
+    # Solve with identity right-hand sides (dsytri is inaccurate for nearly singular K); the inverse is symmetric, so
+    # Fortran and C order agree
+    inverse[:, :] = 0
+    for i in range(N):
+        inverse[i, i] = 1
+    if info == 0:
+        cython_lapack.dsytrs(&uplo, &N, &N, factor, &N, ipiv, &inverse[0, 0], &N, &info)
+    for i in range(N):
+        for j in range(N):
+            inverse[i, j] *= scale[i] * scale[j]
+    if num_dof <= num_cons:
+        # Constraints that fix the configuration: the response to chemical potentials and state variables is exactly
+        # zero, where the solve leaves roundoff
+        inverse[:num_dof, :num_dof] = 0
     if info != 0:
-        for i in range(N**2):
-            A[i] = -1e19
+        inverse[:, :] = -1e19
+    free(scale)
 
 @cython.boundscheck(False)
 cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
@@ -512,7 +621,6 @@ cdef class SystemSpecification:
         return SystemState(self, compsets)
 
 cdef class CompsetState:
-    cdef double[::1] trial_x_tmp
     cdef double energy
     cdef double[::1] energy_view
     cdef double[::1] grad
@@ -537,7 +645,6 @@ cdef class CompsetState:
         self.energy_view = <double[:1]>&self.energy
 
     def __init__(self, SystemSpecification spec, CompositionSet compset):
-        self.trial_x_tmp = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
         self.energy = 0
         self.grad = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
         self.hess = np.zeros((spec.num_statevars + compset.phase_record.phase_dof,
@@ -563,13 +670,13 @@ cdef class CompsetState:
                                        spec.num_statevars + compset.phase_record.phase_dof))
 
     def __getstate__(self):
-        return (np.array(self.trial_x_tmp), self.energy, np.array(self.grad), np.array(self.hess),
+        return (self.energy, np.array(self.grad), np.array(self.hess),
                 np.array(self.phase_matrix), np.array(self.full_e_matrix),
                 np.array(self.masses), np.array(self.mass_jac), np.array(self.c_G), np.array(self.c_statevars),
                 np.array(self.c_component), self.moles_normalization, np.array(self.internal_cons), np.array(self.moles_normalization_grad),
                 np.array(self.ipiv, dtype=np.int32))
     def __setstate__(self, state):
-        (self.trial_x_tmp, self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
+        (self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
          self.masses, self.mass_jac, self.c_G, self.c_statevars,
          self.c_component, self.moles_normalization, self.internal_cons, self.moles_normalization_grad,
          self.ipiv) = state
@@ -647,7 +754,12 @@ cdef class SystemState:
         self._compset_removal_flags = np.zeros(len(self.compsets), dtype=np.int32)
 
     @cython.boundscheck(False)
-    cpdef void recompute(self, SystemSpecification spec):
+    cpdef void recompute(self, SystemSpecification spec, bint curvature_correction=False):
+        """
+        Compute each composition set's energy, derivatives and inverse phase matrix at the current state. Newton steps
+        need curvature_correction (steps descend, see invert_phase_matrix); derivatives at a solution need the exact
+        inverse.
+        """
         cdef int num_components = spec.num_components
         cdef CompositionSet compset
         cdef CompsetState csst
@@ -696,11 +808,8 @@ cdef class SystemState:
             compset.phase_record.internal_cons_func(csst.internal_cons, x)
 
             compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.phase_local_jac_tmp, csst.mass_hess_tmp, compset, spec.num_statevars, self.chemical_potentials, x)
-            # Copy the phase matrix into the e matrix and invert the e matrix
-            for i in range(csst.full_e_matrix.shape[0]):
-                for j in range(csst.full_e_matrix.shape[1]):
-                    csst.full_e_matrix[i,j] = csst.phase_matrix[i,j]
-            invert_matrix(&csst.full_e_matrix[0,0], csst.full_e_matrix.shape[0], &csst.ipiv[0])
+            invert_phase_matrix(csst.full_e_matrix, csst.phase_matrix, x[spec.num_statevars:], &csst.ipiv[0],
+                                curvature_correction)
 
             num_phase_dof = compset.phase_record.phase_dof
             csst.c_G[:] = 0
@@ -941,7 +1050,7 @@ cpdef double[::1] solve_state(SystemSpecification spec, SystemState state):
     cdef CompsetState csst
 
     state.previous_chemical_potentials[:] = state.chemical_potentials[:]
-    state.recompute(spec)
+    state.recompute(spec, curvature_correction=True)
 
     if spec.debugging_output:
         for i in range(state.free_stable_compset_indices.shape[0]):
@@ -991,14 +1100,31 @@ cpdef double[::1] solve_state(SystemSpecification spec, SystemState state):
     return equilibrium_soln
 
 
+cdef double backtracked_step_size(double[::1] y, double[::1] delta_y, double step_size,
+                                  double min_site_fraction) noexcept nogil:
+    "Largest step_size / 2**k that keeps y + step_size * delta_y within the site fraction bounds, up to 1e-11."
+    cdef double minimum_step_size = 1e-20 * step_size
+    cdef int i
+    while step_size >= minimum_step_size:
+        for i in range(y.shape[0]):
+            if (y[i] + step_size * delta_y[i] - 1) > 1e-11 or \
+                    (min_site_fraction - y[i] - step_size * delta_y[i]) > 1e-11:
+                break
+        else:
+            return step_size
+        step_size *= 0.5
+    # No step keeps the bounds: the smallest one tried
+    return 2 * step_size
+
+
 # TODO: should we store equilibrium_soln in the state(?)
 cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equilibrium_soln, double step_size):
     # Apply linear corrections in phase amounts, state variables and site fractions
-    cdef bint exceeded_bounds
-    cdef double minimum_step_size, psc, phase_amt_step_size
+    cdef double psc, phase_amt_step_size, stable_step_size, compset_step_size, y_new
+    cdef bint stable
     cdef int i, idx, cons_idx, compset_idx, statevar_idx, chempot_idx
     cdef int soln_index_offset = spec.free_chemical_potential_indices.shape[0]  # Chemical potentials handled after solving
-    cdef double[::1] new_y, x
+    cdef double[::1] x
     cdef CompositionSet compset
     cdef CompsetState csst
 
@@ -1049,7 +1175,9 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
         # We need real state variable bounds support
 
     # 3. Step in phase internal degrees of freedom
-    state.largest_y_change[0] = 0.0
+    # The mass balance couples the stable and fixed composition sets, so they take one step size: the largest that keeps
+    # all of them within bounds. Metastable composition sets backtrack on their own.
+    stable_step_size = step_size
     for idx in range(len(state.compsets)):
         compset = state.compsets[idx]
         x = state.dof[idx, :compset.dof.shape[0]]
@@ -1067,33 +1195,29 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
             for cons_idx in range(csst.internal_cons.shape[0]):
                 csst.delta_y[i] -= csst.full_e_matrix[csst.delta_y.shape[0] + cons_idx, i] * csst.internal_cons[cons_idx]
 
-        new_y = csst.trial_x_tmp
-        new_y[:] = x
-        minimum_step_size = 1e-20 * step_size
-        while step_size >= minimum_step_size:
-            exceeded_bounds = False
-            for i in range(spec.num_statevars, new_y.shape[0]):
-                new_y[i] = x[i] + step_size * csst.delta_y[i - spec.num_statevars]
-                if new_y[i] > 1:
-                    if (new_y[i] - 1) > 1e-11:
-                        # Allow some tolerance in the name of progress
-                        exceeded_bounds = True
-                    new_y[i] = 1
-                elif new_y[i] < MIN_SITE_FRACTION:
-                    if (MIN_SITE_FRACTION - new_y[i]) > 1e-11:
-                        # Allow some tolerance in the name of progress
-                        exceeded_bounds = True
-                    # Reduce by two orders of magnitude, or MIN_SITE_FRACTION, whichever is larger
-                    new_y[i] = max(x[i]/100, MIN_SITE_FRACTION)
-            if exceeded_bounds:
-                step_size *= 0.5
-                continue
-            break
-        # Only allow stable or fixed phases can contribute to state.largest_y_change
         if (state.phase_amt[idx] > 0) or compset.fixed:
-            for i in range(spec.num_statevars, new_y.shape[0]):
-                state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - new_y[i]))
-        x[:] = new_y
+            stable_step_size = backtracked_step_size(x[spec.num_statevars:], csst.delta_y, stable_step_size,
+                                                     MIN_SITE_FRACTION)
+
+    state.largest_y_change[0] = 0.0
+    for idx in range(len(state.compsets)):
+        compset = state.compsets[idx]
+        x = state.dof[idx, :compset.dof.shape[0]]
+        csst = state.cs_states[idx]
+        stable = (state.phase_amt[idx] > 0) or compset.fixed
+        compset_step_size = stable_step_size if stable else \
+            backtracked_step_size(x[spec.num_statevars:], csst.delta_y, step_size, MIN_SITE_FRACTION)
+        for i in range(spec.num_statevars, x.shape[0]):
+            y_new = x[i] + compset_step_size * csst.delta_y[i - spec.num_statevars]
+            if y_new > 1:
+                y_new = 1
+            elif y_new < MIN_SITE_FRACTION:
+                # Reduce by two orders of magnitude, or MIN_SITE_FRACTION, whichever is larger
+                y_new = max(x[i]/100, MIN_SITE_FRACTION)
+            # Only stable or fixed phases contribute to state.largest_y_change
+            if stable:
+                state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - y_new))
+            x[i] = y_new
 
 
 cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState state):

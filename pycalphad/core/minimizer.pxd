@@ -21,7 +21,7 @@ cdef class SystemState:
     cdef double[::1] _equilibrium_rhs
     cdef int _equilibrium_size
     cdef int[::1] _compset_removal_flags
-    cpdef void recompute(self, SystemSpecification spec)
+    cpdef void recompute(self, SystemSpecification spec, bint curvature_correction=*)
     cdef double[::1] driving_forces(self)
     cdef void increment_phase_metastability_counters(self)
 
