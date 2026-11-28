@@ -12,7 +12,7 @@ Make sure `Microsoft Visual C++ Build Tools <https://visualstudio.microsoft.com/
 
 After completing those downloads, `click <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ to download Microsoft's Python extension for VSCode.
 
-We strongly reccomend using uv as your Python package manager.
+We strongly recommend using uv as your Python package manager.
 Besides being fast, uv automatically manages your Python installation, virtual environments, and keeps packages in sync during development, following best practices (`<https://docs.astral.sh/uv/pip/environments/>`_).
 You can follow the installation instructions on Astral website: `uv installation <https://docs.astral.sh/uv/getting-started/installation/>`_.
 
